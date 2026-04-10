@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Fit-Tech | Pro Biometrics</title>
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="app">
+      <div class="video-container">
+        <video id="webcam" autoplay playsinline></video>
+        <canvas id="output_canvas"></canvas>
+        
+        <!-- HUD Overlay -->
+        <div class="hud">
+          <div class="stats-panel">
+            <div class="stat">
+              <span class="label">REPS</span>
+              <span id="rep_count" class="value">0</span>
+            </div>
+            <div class="stat">
+              <span class="label">POWER</span>
+              <span id="power_meter" class="value">0%</span>
+            </div>
+          </div>
+          
+          <div class="exercise-info">
+            <h1 id="exercise_name">Select Exercise</h1>
+            <p id="feedback_msg" class="feedback">Position yourself in frame</p>
+          </div>
+          
+          <div class="coaching-panel" id="coaching_panel">
+            <div class="ai-badge">AI COACH</div>
+            <p id="coaching_text">Ready to work out?</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="controls">
+        <select id="exercise_selector">
+          <!-- Options will be populated from exercises.json -->
+        </select>
+        
+        <div id="side_toggle" class="toggle-group hidden">
+          <button class="toggle-btn active" data-side="left">LEFT</button>
+          <button class="toggle-btn" data-side="right">RIGHT</button>
+        </div>
+
+        <button id="start_btn" class="btn-glow">START SESSION</button>
+      </div>
+      
+      <!-- Ghost Overlay for positioning -->
+      <div id="ghost_overlay" class="ghost-container hidden">
+        <div class="ghost-instruction">Position your profile here</div>
+        <div class="ghost-outline"></div>
+      </div>
+    </div>
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
