@@ -1,50 +1,56 @@
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from "@mediapipe/tasks-vision";
 
-// UI Elements
+// View Elements
+const portalView = document.getElementById("portal_view");
+const sessionView = document.getElementById("session_view");
+const workoutGrid = document.getElementById("workout_grid");
+const filterBar = document.getElementById("filter_bar");
+
+// Session Elements
 const video = document.getElementById("webcam");
 const canvasElement = document.getElementById("output_canvas");
 const canvasCtx = canvasElement.getContext("2d");
 const repCountEl = document.getElementById("rep_count");
-const powerMeterEl = document.getElementById("power_meter");
-const feedbackEl = document.getElementById("feedback_msg");
+const consistencyMeterEl = document.getElementById("consistency_meter");
 const coachingTextEl = document.getElementById("coaching_text");
-const exerciseSelector = document.getElementById("exercise_selector");
-const startBtn = document.getElementById("start_btn");
-const sideToggle = document.getElementById("side_toggle");
-const toggleBtns = document.querySelectorAll(".toggle-btn");
-const ghostOverlay = document.getElementById("ghost_overlay");
+const unilateralToggle = document.getElementById("unilateral_toggle");
+const sideBtns = document.querySelectorAll(".side-btn");
+const exitBtn = document.getElementById("exit_session");
 
-// State Vars
+// App State
 let poseLandmarker = undefined;
 let webcamRunning = false;
 let lastVideoTime = -1;
 let exerciseData = [];
 let currentExercise = null;
-let currentState = "";
-let currentStageIndex = 0; // For sequences
-let count = 0;
-let holdStartTime = null;
+let currentView = "portal"; // "portal" or "session"
 let currentSide = "left";
 let socket = null;
+
+// Biometric State
+let count = 0;
+let currentState = "";
+let currentStageIndex = 0;
+let holdStartTime = null;
+let repAngles = []; // History for consistency score
+let consistencyScore = 0;
 
 // Initialization
 const init = async () => {
     try {
         const response = await fetch("http://localhost:8000/exercises");
         exerciseData = await response.json();
-        
-        // Populate Selector
-        exerciseSelector.innerHTML = exerciseData.map(ex => 
-            `<option value="${ex.id}">${ex.name}</option>`
-        ).join("");
-        
-        updateExerciseUI();
+        renderWorkoutCards("all");
     } catch (e) {
         console.error("Failed to load exercises", e);
     }
 
     connectWebSocket();
+    setupMediaPipe();
+    setupEventListeners();
+};
 
+const setupMediaPipe = async () => {
     const vision = await FilesetResolver.forVisionTasks(
         "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
     );
@@ -56,8 +62,6 @@ const init = async () => {
         runningMode: "VIDEO",
         numPoses: 1
     });
-
-    startBtn.disabled = false;
 };
 
 const connectWebSocket = () => {
@@ -68,23 +72,62 @@ const connectWebSocket = () => {
     };
 };
 
-// UI Handlers
-const updateExerciseUI = () => {
-    currentExercise = exerciseData.find(ex => ex.id === exerciseSelector.value);
+// Portal Logic
+const renderWorkoutCards = (filter) => {
+    workoutGrid.innerHTML = "";
+    
+    const filtered = exerciseData.filter(ex => {
+        if (filter === "all") return true;
+        if (filter === "yoga") return ex.id.includes("yoga") || ex.id.includes("stretch");
+        if (filter === "core") return ex.id.includes("plank") || ex.id.includes("situp") || ex.id.includes("crunch");
+        // Simple heuristic for demo, could be better tagged in JSON
+        return true; 
+    });
+
+    filtered.forEach(ex => {
+        const card = document.createElement("div");
+        card.className = "workout-card animate-fade";
+        card.innerHTML = `
+            <div class="card-thumb">
+                <div class="difficulty-tag">LEVEL ${Math.floor(Math.random() * 3) + 1}</div>
+                <i class="exercise-icon">⚡</i>
+            </div>
+            <div class="card-content">
+                <h3>${ex.name}</h3>
+                <div class="card-meta">
+                    <div class="meta-item"><span>⏱️</span> 5-10m</div>
+                    <div class="meta-item"><span>💪</span> ${ex.type.toUpperCase()}</div>
+                </div>
+            </div>
+        `;
+        card.onclick = () => startSession(ex.id);
+        workoutGrid.appendChild(card);
+    });
+};
+
+// Session Logic
+const startSession = async (exerciseId) => {
+    currentExercise = exerciseData.find(ex => ex.id === exerciseId);
     if (!currentExercise) return;
 
-    document.getElementById("exercise_name").innerText = currentExercise.name;
-    
-    // Reset Counters
+    // Reset Session state
     count = 0;
-    repCountEl.innerText = count;
-    feedbackEl.innerText = "Position yourself";
-    
+    repAngles = [];
+    consistencyScore = 0;
+    repCountEl.innerText = "0";
+    consistencyMeterEl.innerText = "0%";
+    coachingTextEl.innerText = `Starting ${currentExercise.name}. Ready?`;
+
+    // Handle View Transition
+    portalView.classList.add("hidden");
+    sessionView.classList.remove("hidden");
+    currentView = "session";
+
     // Handle Unilateral
     if (currentExercise.unilateral) {
-        sideToggle.classList.remove("hidden");
+        unilateralToggle.classList.remove("hidden");
     } else {
-        sideToggle.classList.add("hidden");
+        unilateralToggle.classList.add("hidden");
     }
 
     // Reset State Machines
@@ -92,65 +135,57 @@ const updateExerciseUI = () => {
         currentState = Object.keys(currentExercise.states)[0];
     } else if (currentExercise.type === "sequence") {
         currentStageIndex = 0;
-    } else if (currentExercise.type === "isometric") {
-        holdStartTime = null;
-        powerMeterEl.innerText = "0s";
     }
 
-    // Show/Hide Ghost for floor exercises
-    const floorExercises = [
-        "plank", "glute_bridge", "situp", "crunch",
-        "bird_dog", "superman", "dead_bug", "cobra_stretch", 
-        "childs_pose", "boat_pose", "glute_kickback",
-        "db_floor_press", "turkish_getup", "spiderman_pushup",
-        "windshield_wipers", "hollow_body_hold", "hollow_rock", "donkey_kicks",
-        "scissor_kicks", "bird_dog_crunch", "plank_shoulder_tap", 
-        "seated_leg_tucks", "reverse_snow_angel", "single_leg_glute_bridge",
-        "cat_cow", "mountain_climber_twist", "dead_bug_opposite"
-    ];
-    if (floorExercises.includes(currentExercise.id)) {
-        ghostOverlay.classList.remove("hidden");
-    } else {
-        ghostOverlay.classList.add("hidden");
-    }
+    // Start Webcam
+    enableCam();
 };
 
-exerciseSelector.addEventListener("change", updateExerciseUI);
-
-toggleBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-        toggleBtns.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        currentSide = btn.dataset.side;
-        updateExerciseUI();
-    });
-});
+const exitSession = () => {
+    stopCam();
+    sessionView.classList.add("hidden");
+    portalView.classList.remove("hidden");
+    currentView = "portal";
+};
 
 const enableCam = () => {
     if (!poseLandmarker) return;
-    webcamRunning = !webcamRunning;
-    startBtn.innerText = webcamRunning ? "STOP SESSION" : "START SESSION";
-
-    if (webcamRunning) {
-        navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
-            video.srcObject = stream;
-            video.addEventListener("loadeddata", predictWebcam);
-        });
-    } else {
-        const stream = video.srcObject;
-        if (stream) stream.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
-    }
+    webcamRunning = true;
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+        video.srcObject = stream;
+        video.addEventListener("loadeddata", predictWebcam);
+    });
 };
 
-startBtn.addEventListener("click", enableCam);
+const stopCam = () => {
+    webcamRunning = false;
+    const stream = video.srcObject;
+    if (stream) stream.getTracks().forEach(track => track.stop());
+    video.srcObject = null;
+};
 
-// Math
-const calculateAngle = (a, b, c) => {
-    const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
-    let angle = Math.abs((radians * 180.0) / Math.PI);
-    if (angle > 180.0) angle = 360 - angle;
-    return angle;
+// Event Listeners
+const setupEventListeners = () => {
+    // Filters
+    filterBar.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.onclick = () => {
+            filterBar.querySelector(".active").classList.remove("active");
+            btn.classList.add("active");
+            renderWorkoutCards(btn.dataset.filter);
+        };
+    });
+
+    // Exit
+    exitBtn.onclick = exitSession;
+
+    // Side Toggle
+    sideBtns.forEach(btn => {
+        btn.onclick = () => {
+            unilateralToggle.querySelector(".active").classList.remove("active");
+            btn.classList.add("active");
+            currentSide = btn.dataset.side;
+        };
+    });
 };
 
 // Processing Loop
@@ -165,8 +200,13 @@ async function predictWebcam() {
         if (result.landmarks.length > 0) {
             const landmarks = result.landmarks[0];
             const drawingUtils = new DrawingUtils(canvasCtx);
-            drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS, { color: "#7000ff", lineWidth: 4 });
-            drawingUtils.drawLandmarks(landmarks, { color: "#00f2ff", lineWidth: 2 });
+            
+            // Clean AI Skeleton Styles
+            drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS, { 
+                color: consistencyScore > 80 ? "#2ED0D8" : "#FF5A5F", 
+                lineWidth: 5 
+            });
+            drawingUtils.drawLandmarks(landmarks, { color: "#ffffff", lineWidth: 2, radius: 2 });
             
             processMotion(landmarks);
         }
@@ -176,9 +216,7 @@ async function predictWebcam() {
 }
 
 const processMotion = (landmarks) => {
-    const sidePrefix = currentSide === "left" ? "left_" : "right_";
-    
-    // Joint Mapping
+    // Joint Mapping Wrapper
     const getL = (name) => {
         const indices = {
             "shoulder": currentSide === "left" ? 11 : 12,
@@ -186,8 +224,7 @@ const processMotion = (landmarks) => {
             "wrist": currentSide === "left" ? 15 : 16,
             "hip": currentSide === "left" ? 23 : 24,
             "knee": currentSide === "left" ? 25 : 26,
-            "ankle": currentSide === "left" ? 27 : 28,
-            "foot": currentSide === "left" ? 31 : 32
+            "ankle": currentSide === "left" ? 27 : 28
         };
         const cleanName = name.replace("left_", "").replace("right_", "");
         return landmarks[indices[cleanName]];
@@ -208,17 +245,17 @@ const handleRepExercise = (getL) => {
 
     const angle = calculateAngle(joints[0], joints[1], joints[2]);
     const config = currentExercise.states[currentState];
-    
     const conditionMet = evalCondition(config.condition, angle);
     
     if (conditionMet) {
         if (config.count_on === currentState) {
             count++;
+            repAngles.push(angle);
+            calculateConsistency();
             repCountEl.innerText = count;
             sendSessionUpdate();
         }
         currentState = config.next;
-        feedbackEl.innerText = currentState;
     }
 };
 
@@ -232,41 +269,24 @@ const handleIsometricExercise = (getL) => {
     if (diff < currentExercise.tolerance) {
         if (!holdStartTime) holdStartTime = Date.now();
         const duration = Math.floor((Date.now() - holdStartTime) / 1000);
-        powerMeterEl.innerText = `${duration}s`;
-        feedbackEl.innerText = "HOLDING!";
+        repCountEl.innerText = `${duration}s`;
     } else {
         holdStartTime = null;
-        feedbackEl.innerText = currentExercise.message || "Adjust your position";
     }
 };
 
 const handleSequenceExercise = (landmarks) => {
-    // Simplified Burpee Logic: Standing (y < 0.3) -> Squat (y > 0.6) -> Plank (Shoulder-Hip aligned)
     const headY = landmarks[0].y;
     const stage = currentExercise.stages[currentStageIndex];
-    
     let stageReached = false;
+    
+    // Stage logic (simplified for flow)
     if (stage === "STANDING" && headY < 0.4) stageReached = true;
     if (stage === "SQUAT" && headY > 0.7) stageReached = true;
     if (stage === "PLANK" && Math.abs(landmarks[11].y - landmarks[23].y) < 0.1) stageReached = true;
     if (stage === "JUMP" && headY < 0.2) stageReached = true;
-    if (stage === "OVERHEAD" && landmarks[15].y < landmarks[0].y) stageReached = true; // Wrist above head
-    if (stage === "FLOOR" && headY > 0.8) stageReached = true;
-    if (stage === "RACK" && landmarks[15].y < landmarks[11].y) stageReached = true;
-    if (stage === "ELBOW" && headY > 0.7) stageReached = true;
-    if (stage === "HAND" && headY > 0.5) stageReached = true;
-    if (stage === "KNEE" && headY > 0.3) stageReached = true;
-    if (stage === "PIKE" && landmarks[23].y < landmarks[11].y + 0.1) stageReached = true;
-    if (stage === "READY" && headY < 0.4) stageReached = true;
-    if (stage === "JAB" && Math.abs(landmarks[15].z - landmarks[11].z) > 0.2) stageReached = true; // Z-axis for punch
-    if (stage === "CROSS" && Math.abs(landmarks[16].z - landmarks[12].z) > 0.2) stageReached = true;
-    if (stage === "LEFT_LEG" && landmarks[25].y < landmarks[26].y - 0.1) stageReached = true;
-    if (stage === "RIGHT_LEG" && landmarks[26].y < landmarks[25].y - 0.1) stageReached = true;
-    if (stage === "CENTER" && headY < 0.5) stageReached = true;
-    if (stage === "SIDE" && headY > 0.6) stageReached = true;
-    if (stage === "CURTSY" && landmarks[27].x > landmarks[28].x) stageReached = true;
+    if (stage === "OVERHEAD" && landmarks[15].y < landmarks[0].y) stageReached = true;
     if (stage === "PUSHUP" && landmarks[13].y > landmarks[11].y + 0.05) stageReached = true;
-    if (stage === "DOG" && landmarks[23].y < landmarks[11].y) stageReached = true;
 
     if (stageReached) {
         if (stage === currentExercise.count_on) {
@@ -274,8 +294,26 @@ const handleSequenceExercise = (landmarks) => {
             repCountEl.innerText = count;
         }
         currentStageIndex = (currentStageIndex + 1) % currentExercise.stages.length;
-        feedbackEl.innerText = currentExercise.stages[currentStageIndex];
     }
+};
+
+// Biometric Math
+const calculateAngle = (a, b, c) => {
+    const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
+    let angle = Math.abs((radians * 180.0) / Math.PI);
+    if (angle > 180.0) angle = 360 - angle;
+    return angle;
+};
+
+const calculateConsistency = () => {
+    if (repAngles.length < 2) return;
+    const avg = repAngles.reduce((a, b) => a + b) / repAngles.length;
+    const variance = repAngles.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / repAngles.length;
+    const stdDev = Math.sqrt(variance);
+    
+    // Normalize to 0-100 score (lower stdDev is better)
+    consistencyScore = Math.max(0, 100 - (stdDev * 5));
+    consistencyMeterEl.innerText = `${Math.floor(consistencyScore)}%`;
 };
 
 const evalCondition = (cond, angle) => {
@@ -289,6 +327,7 @@ const sendSessionUpdate = () => {
         socket.send(JSON.stringify({
             exercise: currentExercise.name,
             reps: count,
+            consistency: consistencyScore,
             type: currentExercise.type
         }));
     }
