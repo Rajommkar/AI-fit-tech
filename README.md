@@ -32,7 +32,7 @@ AI Fit-Tech is a high-performance fitness tracking platform that uses computer v
 2. Run the dev server: `npm run dev`
 
 ## 📊 Exercise Database
-The platform supports 25+ exercises out of the box, with rules defined in `common/exercises.json`.
+The platform supports 50+ exercises out of the box, with rules defined in `common/exercises.json`.
 
 ---
 Developed by [Rajommkar](https://github.com/Rajommkar)

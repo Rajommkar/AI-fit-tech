@@ -98,7 +98,12 @@ const updateExerciseUI = () => {
     }
 
     // Show/Hide Ghost for floor exercises
-    if (["plank", "glute_bridge", "situp", "crunch"].includes(currentExercise.id)) {
+    const floorExercises = [
+        "plank", "glute_bridge", "situp", "crunch",
+        "bird_dog", "superman", "dead_bug", "cobra_stretch", 
+        "childs_pose", "boat_pose", "glute_kickback"
+    ];
+    if (floorExercises.includes(currentExercise.id)) {
         ghostOverlay.classList.remove("hidden");
     } else {
         ghostOverlay.classList.add("hidden");
@@ -240,6 +245,7 @@ const handleSequenceExercise = (landmarks) => {
     if (stage === "SQUAT" && headY > 0.7) stageReached = true;
     if (stage === "PLANK" && Math.abs(landmarks[11].y - landmarks[23].y) < 0.1) stageReached = true;
     if (stage === "JUMP" && headY < 0.2) stageReached = true;
+    if (stage === "OVERHEAD" && landmarks[15].y < landmarks[0].y) stageReached = true; // Wrist above head
 
     if (stageReached) {
         if (stage === currentExercise.count_on) {
