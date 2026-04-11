@@ -735,6 +735,239 @@
         "DOWN": { "condition": "angle < 100", "next": "UP" },
         "UP": { "condition": "angle > 150", "next": "DOWN", "count_on": "UP" }
       }
+    },
+    {
+      "id": "jab_cross",
+      "name": "Shadow Boxing: Jab-Cross",
+      "type": "sequence",
+      "stages": ["READY", "JAB", "CROSS"],
+      "count_on": "CROSS"
+    },
+    {
+      "id": "boxing_hook",
+      "name": "Shadow Boxing: Hook",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["left_shoulder", "left_elbow", "left_wrist"],
+      "states": {
+        "READY": { "condition": "angle > 140", "next": "HOOK" },
+        "HOOK": { "condition": "angle < 100", "next": "READY", "count_on": "READY" }
+      }
+    },
+    {
+      "id": "boxing_uppercut",
+      "name": "Shadow Boxing: Uppercut",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["left_shoulder", "left_elbow", "left_wrist"],
+      "states": {
+        "DOWN": { "condition": "angle < 60", "next": "UP" },
+        "UP": { "condition": "angle > 100", "next": "DOWN", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "tuck_jump",
+      "name": "Tuck Jump",
+      "type": "rep",
+      "joints": ["left_shoulder", "left_hip", "left_knee"],
+      "states": {
+        "STANDING": { "condition": "angle > 160", "next": "TUCK" },
+        "TUCK": { "condition": "angle < 70", "next": "STANDING", "count_on": "TUCK" }
+      }
+    },
+    {
+      "id": "skaters",
+      "name": "Skaters",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["left_hip", "left_knee", "right_knee"],
+      "states": {
+        "LEFT": { "condition": "angle < 120", "next": "RIGHT" },
+        "RIGHT": { "condition": "angle > 150", "next": "LEFT", "count_on": "LEFT" }
+      }
+    },
+    {
+      "id": "scissor_kicks",
+      "name": "Scissor Kicks",
+      "type": "rep",
+      "joints": ["left_hip", "left_ankle", "right_ankle"],
+      "states": {
+        "OPEN": { "condition": "angle > 30", "next": "CLOSED" },
+        "CLOSED": { "condition": "angle < 10", "next": "OPEN", "count_on": "CLOSED" }
+      }
+    },
+    {
+      "id": "bird_dog_crunch",
+      "name": "Bird Dog Crunch",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["left_elbow", "left_hip", "right_knee"],
+      "states": {
+        "EXTENDED": { "condition": "angle > 140", "next": "CRUNCH" },
+        "CRUNCH": { "condition": "angle < 60", "next": "EXTENDED", "count_on": "CRUNCH" }
+      }
+    },
+    {
+      "id": "plank_shoulder_tap",
+      "name": "Plank Shoulder Tap",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["right_shoulder", "left_wrist", "left_shoulder"],
+      "states": {
+        "FLOOR": { "condition": "angle > 100", "next": "TAP" },
+        "TAP": { "condition": "angle < 40", "next": "FLOOR", "count_on": "TAP" }
+      }
+    },
+    {
+      "id": "seated_leg_tucks",
+      "name": "Seated Leg Tucks",
+      "type": "rep",
+      "joints": ["left_shoulder", "left_hip", "left_knee"],
+      "states": {
+        "EXTENDED": { "condition": "angle > 140", "next": "TUCK" },
+        "TUCK": { "condition": "angle < 70", "next": "EXTENDED", "count_on": "TUCK" }
+      }
+    },
+    {
+      "id": "reverse_snow_angel",
+      "name": "Reverse Snow Angel",
+      "type": "rep",
+      "joints": ["left_hip", "left_shoulder", "left_wrist"],
+      "states": {
+        "DOWN": { "condition": "angle < 30", "next": "UP" },
+        "UP": { "condition": "angle > 160", "next": "DOWN", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "pistol_squat",
+      "name": "Pistol Squat",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["left_hip", "left_knee", "left_ankle"],
+      "states": {
+        "UP": { "condition": "angle > 160", "next": "DOWN" },
+        "DOWN": { "condition": "angle < 90", "next": "UP", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "single_leg_glute_bridge",
+      "name": "Single Leg Glute Bridge",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["left_shoulder", "left_hip", "left_knee"],
+      "states": {
+        "DOWN": { "condition": "angle < 130", "next": "UP" },
+        "UP": { "condition": "angle > 160", "next": "DOWN", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "db_pullover",
+      "name": "DB Pullover",
+      "type": "rep",
+      "joints": ["left_hip", "left_shoulder", "left_wrist"],
+      "states": {
+        "OVERHEAD": { "condition": "angle > 160", "next": "CHEST" },
+        "CHEST": { "condition": "angle < 80", "next": "OVERHEAD", "count_on": "OVERHEAD" }
+      }
+    },
+    {
+      "id": "db_lateral_lunge",
+      "name": "DB Lateral Lunge",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["left_hip", "left_knee", "left_ankle"],
+      "states": {
+        "UP": { "condition": "angle > 160", "next": "DOWN" },
+        "DOWN": { "condition": "angle < 110", "next": "UP", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "kb_figure_8",
+      "name": "KB Figure 8",
+      "type": "sequence",
+      "stages": ["LEFT_LEG", "RIGHT_LEG", "CENTER"],
+      "count_on": "CENTER"
+    },
+    {
+      "id": "kb_alternating_row",
+      "name": "KB Alternating Row",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["left_shoulder", "left_elbow", "left_wrist"],
+      "states": {
+        "DOWN": { "condition": "angle > 150", "next": "UP" },
+        "UP": { "condition": "angle < 90", "next": "DOWN", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "plank_to_dog",
+      "name": "Plank to Downward Dog",
+      "type": "sequence",
+      "stages": ["PLANK", "DOG"],
+      "count_on": "DOG"
+    },
+    {
+      "id": "cat_cow",
+      "name": "Cat-Cow Stretch",
+      "type": "rep",
+      "joints": ["left_shoulder", "left_hip", "left_knee"],
+      "states": {
+        "COW": { "condition": "angle < 155", "next": "CAT" },
+        "CAT": { "condition": "angle > 165", "next": "COW", "count_on": "CAT" }
+      }
+    },
+    {
+      "id": "frog_squat",
+      "name": "Frog Squat",
+      "type": "rep",
+      "joints": ["left_hip", "left_knee", "left_ankle"],
+      "states": {
+        "DOWN": { "condition": "angle < 70", "next": "UP" },
+        "UP": { "condition": "angle > 120", "next": "DOWN", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "curtsy_to_side",
+      "name": "Side Lunge to Curtsy",
+      "type": "sequence",
+      "stages": ["SIDE", "CENTER", "CURTSY"],
+      "count_on": "CURTSY"
+    },
+    {
+      "id": "mountain_climber_twist",
+      "name": "Mountain Climber Twist",
+      "type": "rep",
+      "joints": ["left_hip", "left_knee", "right_elbow"],
+      "states": {
+        "EXTENDED": { "condition": "angle > 140", "next": "TWIST" },
+        "TWIST": { "condition": "angle < 70", "next": "EXTENDED", "count_on": "EXTENDED" }
+      }
+    },
+    {
+      "id": "dead_bug_opposite",
+      "name": "Dead Bug (Opposite)",
+      "type": "rep",
+      "joints": ["left_wrist", "left_hip", "right_knee"],
+      "states": {
+        "TUCKED": { "condition": "angle < 60", "next": "EXTENDED" },
+        "EXTENDED": { "condition": "angle > 140", "next": "TUCKED", "count_on": "EXTENDED" }
+      }
+    },
+    {
+      "id": "wall_slide",
+      "name": "Wall Slide",
+      "type": "isometric",
+      "joints": ["left_shoulder", "left_elbow", "left_wrist"],
+      "target_angle": 90,
+      "tolerance": 15,
+      "message": "Keep elbows and wrists against the wall!"
+    },
+    {
+      "id": "century_burpee",
+      "name": "The Century Burpee",
+      "type": "sequence",
+      "stages": ["STANDING", "SQUAT", "PLANK", "PUSHUP", "PLANK", "SQUAT", "JUMP"],
+      "count_on": "JUMP"
     }
   ]
 }

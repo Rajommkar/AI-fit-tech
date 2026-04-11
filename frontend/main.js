@@ -103,7 +103,10 @@ const updateExerciseUI = () => {
         "bird_dog", "superman", "dead_bug", "cobra_stretch", 
         "childs_pose", "boat_pose", "glute_kickback",
         "db_floor_press", "turkish_getup", "spiderman_pushup",
-        "windshield_wipers", "hollow_body_hold", "hollow_rock", "donkey_kicks"
+        "windshield_wipers", "hollow_body_hold", "hollow_rock", "donkey_kicks",
+        "scissor_kicks", "bird_dog_crunch", "plank_shoulder_tap", 
+        "seated_leg_tucks", "reverse_snow_angel", "single_leg_glute_bridge",
+        "cat_cow", "mountain_climber_twist", "dead_bug_opposite"
     ];
     if (floorExercises.includes(currentExercise.id)) {
         ghostOverlay.classList.remove("hidden");
@@ -254,6 +257,16 @@ const handleSequenceExercise = (landmarks) => {
     if (stage === "HAND" && headY > 0.5) stageReached = true;
     if (stage === "KNEE" && headY > 0.3) stageReached = true;
     if (stage === "PIKE" && landmarks[23].y < landmarks[11].y + 0.1) stageReached = true;
+    if (stage === "READY" && headY < 0.4) stageReached = true;
+    if (stage === "JAB" && Math.abs(landmarks[15].z - landmarks[11].z) > 0.2) stageReached = true; // Z-axis for punch
+    if (stage === "CROSS" && Math.abs(landmarks[16].z - landmarks[12].z) > 0.2) stageReached = true;
+    if (stage === "LEFT_LEG" && landmarks[25].y < landmarks[26].y - 0.1) stageReached = true;
+    if (stage === "RIGHT_LEG" && landmarks[26].y < landmarks[25].y - 0.1) stageReached = true;
+    if (stage === "CENTER" && headY < 0.5) stageReached = true;
+    if (stage === "SIDE" && headY > 0.6) stageReached = true;
+    if (stage === "CURTSY" && landmarks[27].x > landmarks[28].x) stageReached = true;
+    if (stage === "PUSHUP" && landmarks[13].y > landmarks[11].y + 0.05) stageReached = true;
+    if (stage === "DOG" && landmarks[23].y < landmarks[11].y) stageReached = true;
 
     if (stageReached) {
         if (stage === currentExercise.count_on) {
