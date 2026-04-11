@@ -491,6 +491,250 @@
         "EXTENDED": { "condition": "angle > 160", "next": "CURLED" },
         "CURLED": { "condition": "angle < 90", "next": "EXTENDED", "count_on": "CURLED" }
       }
+    },
+    {
+      "id": "db_snatch",
+      "name": "DB Snatch",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["left_hip", "left_shoulder", "left_wrist"],
+      "states": {
+        "DOWN": { "condition": "angle < 60", "next": "UP" },
+        "UP": { "condition": "angle > 150", "next": "DOWN", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "renegade_row",
+      "name": "DB Renegade Row",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["left_shoulder", "left_elbow", "left_wrist"],
+      "states": {
+        "DOWN": { "condition": "angle > 150", "next": "UP" },
+        "UP": { "condition": "angle < 90", "next": "DOWN", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "arnold_press",
+      "name": "Arnold Press",
+      "type": "rep",
+      "joints": ["left_shoulder", "left_elbow", "left_wrist"],
+      "states": {
+        "START": { "condition": "angle < 60", "next": "OVERHEAD" },
+        "OVERHEAD": { "condition": "angle > 160", "next": "START", "count_on": "OVERHEAD" }
+      }
+    },
+    {
+      "id": "chest_fly",
+      "name": "DB Chest Fly",
+      "type": "rep",
+      "joints": ["left_shoulder", "left_elbow", "left_wrist"],
+      "states": {
+        "OPEN": { "condition": "angle > 140", "next": "CLOSED" },
+        "CLOSED": { "condition": "angle < 60", "next": "OPEN", "count_on": "CLOSED" }
+      }
+    },
+    {
+      "id": "concentration_curl",
+      "name": "Concentration Curl",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["left_shoulder", "left_elbow", "left_wrist"],
+      "states": {
+        "DOWN": { "condition": "angle > 150", "next": "UP" },
+        "UP": { "condition": "angle < 45", "next": "DOWN", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "bulgarian_split_squat",
+      "name": "Bulgarian Split Squat",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["left_hip", "left_knee", "left_ankle"],
+      "states": {
+        "UP": { "condition": "angle > 160", "next": "DOWN" },
+        "DOWN": { "condition": "angle < 100", "next": "UP", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "zotman_curl",
+      "name": "Zotman Curl",
+      "type": "rep",
+      "joints": ["left_shoulder", "left_elbow", "left_wrist"],
+      "states": {
+        "DOWN": { "condition": "angle > 150", "next": "UP" },
+        "UP": { "condition": "angle < 45", "next": "DOWN", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "db_floor_press",
+      "name": "DB Floor Press",
+      "type": "rep",
+      "joints": ["left_shoulder", "left_elbow", "left_wrist"],
+      "states": {
+        "DOWN": { "condition": "angle < 90", "next": "UP" },
+        "UP": { "condition": "angle > 150", "next": "DOWN", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "rear_delt_fly",
+      "name": "DB Rear Delt Fly",
+      "type": "rep",
+      "joints": ["left_hip", "left_shoulder", "left_elbow"],
+      "states": {
+        "DOWN": { "condition": "angle < 45", "next": "UP" },
+        "UP": { "condition": "angle > 80", "next": "DOWN", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "romanian_deadlift",
+      "name": "DB Romanian Deadlift",
+      "type": "rep",
+      "joints": ["left_shoulder", "left_hip", "left_knee"],
+      "states": {
+        "UP": { "condition": "angle > 160", "next": "DOWN" },
+        "DOWN": { "condition": "angle < 100", "next": "UP", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "american_swing",
+      "name": "KB American Swing",
+      "type": "rep",
+      "joints": ["left_hip", "left_shoulder", "left_wrist"],
+      "states": {
+        "DOWN": { "condition": "angle < 60", "next": "OVERHEAD" },
+        "OVERHEAD": { "condition": "angle > 160", "next": "DOWN", "count_on": "OVERHEAD" }
+      }
+    },
+    {
+      "id": "clean_and_press",
+      "name": "KB Clean & Press",
+      "type": "sequence",
+      "stages": ["FLOOR", "RACK", "OVERHEAD"],
+      "count_on": "OVERHEAD"
+    },
+    {
+      "id": "kb_windmill",
+      "name": "KB Windmill",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["left_shoulder", "left_hip", "left_ankle"],
+      "states": {
+        "UP": { "condition": "angle > 160", "next": "DOWN" },
+        "DOWN": { "condition": "angle < 100", "next": "UP", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "kb_halo",
+      "name": "KB Halo",
+      "type": "rep",
+      "joints": ["left_shoulder", "left_elbow", "right_shoulder"],
+      "states": {
+        "FRONT": { "condition": "angle > 40", "next": "BACK" },
+        "BACK": { "condition": "angle < 20", "next": "FRONT", "count_on": "BACK" }
+      }
+    },
+    {
+      "id": "gorilla_row",
+      "name": "KB Gorilla Row",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["left_shoulder", "left_elbow", "left_wrist"],
+      "states": {
+        "DOWN": { "condition": "angle > 150", "next": "UP" },
+        "UP": { "condition": "angle < 90", "next": "DOWN", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "sumo_deadlift",
+      "name": "KB Sumo Deadlift",
+      "type": "rep",
+      "joints": ["left_shoulder", "left_hip", "left_knee"],
+      "states": {
+        "DOWN": { "condition": "angle < 100", "next": "UP" },
+        "UP": { "condition": "angle > 160", "next": "DOWN", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "turkish_getup",
+      "name": "KB Turkish Get-Up",
+      "type": "sequence",
+      "stages": ["FLOOR", "ELBOW", "HAND", "KNEE", "STANDING"],
+      "count_on": "STANDING"
+    },
+    {
+      "id": "kb_goblet_squat",
+      "name": "KB Goblet Squat",
+      "type": "rep",
+      "joints": ["left_hip", "left_knee", "left_ankle"],
+      "states": {
+        "UP": { "condition": "angle > 160", "next": "DOWN" },
+        "DOWN": { "condition": "angle < 90", "next": "UP", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "spiderman_pushup",
+      "name": "Spiderman Pushup",
+      "type": "rep",
+      "joints": ["left_shoulder", "left_elbow", "left_wrist"],
+      "states": {
+        "UP": { "condition": "angle > 160", "next": "DOWN" },
+        "DOWN": { "condition": "angle < 80", "next": "UP", "count_on": "UP" }
+      }
+    },
+    {
+      "id": "windshield_wipers",
+      "name": "Windshield Wipers",
+      "type": "rep",
+      "joints": ["left_shoulder", "left_hip", "left_ankle"],
+      "states": {
+        "LEFT": { "condition": "angle < 90", "next": "RIGHT" },
+        "RIGHT": { "condition": "angle > 90", "next": "LEFT", "count_on": "LEFT" }
+      }
+    },
+    {
+      "id": "hollow_body_hold",
+      "name": "Hollow Body Hold",
+      "type": "isometric",
+      "joints": ["left_shoulder", "left_hip", "left_ankle"],
+      "target_angle": 160,
+      "tolerance": 10,
+      "message": "Keep your lower back glued to the floor!"
+    },
+    {
+      "id": "hollow_rock",
+      "name": "Hollow Rock",
+      "type": "rep",
+      "joints": ["left_shoulder", "left_hip", "left_ankle"],
+      "states": {
+        "BACK": { "condition": "angle < 155", "next": "FORWARD" },
+        "FORWARD": { "condition": "angle > 165", "next": "BACK", "count_on": "BACK" }
+      }
+    },
+    {
+      "id": "inchworm",
+      "name": "Inchworm",
+      "type": "sequence",
+      "stages": ["STANDING", "PLANK", "STANDING"],
+      "count_on": "STANDING"
+    },
+    {
+      "id": "pike_walk",
+      "name": "Pike Walk",
+      "type": "sequence",
+      "stages": ["PLANK", "PIKE", "PLANK"],
+      "count_on": "PIKE"
+    },
+    {
+      "id": "donkey_kicks",
+      "name": "Donkey Kicks",
+      "type": "rep",
+      "unilateral": true,
+      "joints": ["left_hip", "left_knee", "left_ankle"],
+      "states": {
+        "DOWN": { "condition": "angle < 100", "next": "UP" },
+        "UP": { "condition": "angle > 150", "next": "DOWN", "count_on": "UP" }
+      }
     }
   ]
 }

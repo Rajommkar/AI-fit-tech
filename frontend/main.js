@@ -101,7 +101,9 @@ const updateExerciseUI = () => {
     const floorExercises = [
         "plank", "glute_bridge", "situp", "crunch",
         "bird_dog", "superman", "dead_bug", "cobra_stretch", 
-        "childs_pose", "boat_pose", "glute_kickback"
+        "childs_pose", "boat_pose", "glute_kickback",
+        "db_floor_press", "turkish_getup", "spiderman_pushup",
+        "windshield_wipers", "hollow_body_hold", "hollow_rock", "donkey_kicks"
     ];
     if (floorExercises.includes(currentExercise.id)) {
         ghostOverlay.classList.remove("hidden");
@@ -246,6 +248,12 @@ const handleSequenceExercise = (landmarks) => {
     if (stage === "PLANK" && Math.abs(landmarks[11].y - landmarks[23].y) < 0.1) stageReached = true;
     if (stage === "JUMP" && headY < 0.2) stageReached = true;
     if (stage === "OVERHEAD" && landmarks[15].y < landmarks[0].y) stageReached = true; // Wrist above head
+    if (stage === "FLOOR" && headY > 0.8) stageReached = true;
+    if (stage === "RACK" && landmarks[15].y < landmarks[11].y) stageReached = true;
+    if (stage === "ELBOW" && headY > 0.7) stageReached = true;
+    if (stage === "HAND" && headY > 0.5) stageReached = true;
+    if (stage === "KNEE" && headY > 0.3) stageReached = true;
+    if (stage === "PIKE" && landmarks[23].y < landmarks[11].y + 0.1) stageReached = true;
 
     if (stageReached) {
         if (stage === currentExercise.count_on) {
