@@ -2,9 +2,16 @@ import { PoseLandmarker, FilesetResolver, DrawingUtils } from "@mediapipe/tasks-
 
 // View Elements
 const portalView = document.getElementById("portal_view");
+const workoutsView = document.getElementById("workouts_view");
+const journeyView = document.getElementById("journey_view");
 const sessionView = document.getElementById("session_view");
 const workoutGrid = document.getElementById("workout_grid");
 const filterBar = document.getElementById("filter_bar");
+const portalHero = document.getElementById("portal_hero");
+
+// Navigation
+const navWorkouts = document.getElementById("nav_workouts");
+const navJourney = document.getElementById("nav_journey");
 
 // Session Elements
 const video = document.getElementById("webcam");
@@ -27,6 +34,13 @@ let currentExercise = null;
 let currentView = "portal"; // "portal" or "session"
 let currentSide = "left";
 let socket = null;
+let userId = localStorage.getItem("fit_tech_user_id") || `user_${Math.floor(Math.random() * 10000)}`;
+
+// Journey Elements
+const totalRepsEl = document.getElementById("total_lifetime_reps");
+const avgConsistencyEl = document.getElementById("avg_lifetime_consistency");
+const historyListEl = document.getElementById("session_history_list");
+let progressChartInstance = null;
 
 // Biometric State
 let count = 0;
@@ -39,6 +53,7 @@ let consistencyScore = 100; // Start perfect
 let stabilityPoints = []; // Track mid-hip for stability index
 let stabilityScore = 100;
 let ghostLandmarks = null; // Stored PR skeleton
+localStorage.setItem("fit_tech_user_id", userId);
 
 // Initialization
 const init = async () => {
@@ -53,6 +68,7 @@ const init = async () => {
     connectWebSocket();
     setupMediaPipe();
     setupEventListeners();
+    loadJourneyData(); // Load history on entry
 };
 
 const setupMediaPipe = async () => {
@@ -73,8 +89,36 @@ const connectWebSocket = () => {
     socket = new WebSocket("ws://localhost:8000/ws/coaching");
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        coachingTextEl.innerText = data.coaching;
+        if (data.coaching) {
+            coachingTextEl.innerText = data.coaching;
+        }
+        if (data.summary_analysis) {
+            // Synthesis result
+            alert(`AI PERFORMANCE ASSESSMENT:\n\n${data.summary_analysis}`);
+        }
     };
+};
+
+// Navigation & View Logic
+const showView = (viewName) => {
+    const views = {
+        workouts: [workoutsView, portalHero],
+        journey: [journeyView]
+    };
+
+    // Hide all portal-sub-views
+    workoutsView.classList.add("hidden");
+    portalHero.classList.add("hidden");
+    journeyView.classList.add("hidden");
+
+    // Show selected
+    views[viewName].forEach(el => el.classList.remove("hidden"));
+
+    // Update Nav
+    navWorkouts.classList.toggle("active", viewName === "workouts");
+    navJourney.classList.toggle("active", viewName === "journey");
+
+    if (viewName === "journey") loadJourneyData();
 };
 
 // Portal Logic
@@ -107,6 +151,82 @@ const renderWorkoutCards = (filter) => {
         `;
         card.onclick = () => startSession(ex.id);
         workoutGrid.appendChild(card);
+    });
+};
+
+// Journey Logic (Tier 3)
+const loadJourneyData = async () => {
+    try {
+        const res = await fetch(`http://localhost:8000/sessions/history/${userId}`);
+        const history = await res.json();
+        renderJourney(history);
+    } catch (e) {
+        console.error("Failed to load history", e);
+    }
+};
+
+const renderJourney = (history) => {
+    if (!history.length) return;
+
+    // Total Stats
+    const totalReps = history.reduce((sum, s) => sum + s.total_reps, 0);
+    const avgConsistency = Math.floor(history.reduce((sum, s) => sum + s.avg_consistency, 0) / history.length);
+    
+    totalRepsEl.innerText = totalReps;
+    avgConsistencyEl.innerText = `${avgConsistency}%`;
+
+    // History List
+    historyListEl.innerHTML = history.map(s => `
+        <div class="history-item">
+            <div class="history-meta">
+                <span class="history-name">${s.exercise_name}</span>
+                <span class="history-date">${new Date(s.timestamp).toLocaleDateString()}</span>
+            </div>
+            <div class="history-stats">
+                <div class="hist-stat">
+                    <span class="label">REPS</span>
+                    <span class="value">${s.total_reps}</span>
+                </div>
+                <div class="hist-stat">
+                    <span class="label">QUAL</span>
+                    <span class="value">${Math.floor(s.avg_consistency)}%</span>
+                </div>
+            </div>
+        </div>
+    `).join("");
+
+    // Charts
+    initHistoryChart(history);
+};
+
+const initHistoryChart = (history) => {
+    const canvas = document.getElementById('progress_chart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (progressChartInstance) progressChartInstance.destroy();
+
+    const last7 = history.slice(0, 7).reverse();
+    
+    progressChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: last7.map(s => new Date(s.timestamp).toLocaleDateString()),
+            datasets: [{
+                label: 'Consistency %',
+                data: last7.map(s => s.avg_consistency),
+                borderColor: '#2ED0D8',
+                tension: 0.4,
+                backgroundColor: 'rgba(46, 208, 216, 0.1)',
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { min: 0, max: 100 }
+            }
+        }
     });
 };
 
@@ -154,11 +274,54 @@ const startSession = async (exerciseId) => {
     enableCam();
 };
 
-const exitSession = () => {
+const exitSession = async () => {
     stopCam();
+    
+    // Tier 3: Save Data & Synthesize
+    if (count > 0) {
+        await saveSessionToCloud();
+        requestAIAnalysis();
+    }
+
     sessionView.classList.add("hidden");
     portalView.classList.remove("hidden");
     currentView = "portal";
+    showView("journey"); 
+};
+
+const saveSessionToCloud = async () => {
+    const payload = {
+        user_id: userId,
+        exercise_name: currentExercise.name,
+        total_reps: count,
+        avg_consistency: consistencyScore,
+        stability_score: stabilityScore,
+        timestamp: new Date().toISOString()
+    };
+
+    try {
+        await fetch("http://localhost:8000/sessions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+    } catch (e) {
+        console.error("Failed to save session", e);
+    }
+};
+
+const requestAIAnalysis = () => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            type: "session_summary",
+            summary: {
+                exercise: currentExercise.name,
+                reps: count,
+                consistency: consistencyScore,
+                stability: stabilityScore
+            }
+        }));
+    }
 };
 
 const enableCam = () => {
@@ -179,6 +342,9 @@ const stopCam = () => {
 
 // Event Listeners
 const setupEventListeners = () => {
+    navWorkouts.onclick = () => showView("workouts");
+    navJourney.onclick = () => showView("journey");
+
     // Filters
     filterBar.querySelectorAll(".filter-btn").forEach(btn => {
         btn.onclick = () => {

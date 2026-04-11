@@ -404,3 +404,80 @@ nav a:hover, nav a.active {
   .session-hud { flex-direction: column; align-items: stretch; gap: 1rem; }
   .hud-stat .value { font-size: 2rem; }
 }
+
+/* Tier 3: Journey Dashboard */
+.stats-overview {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.stats-overview .hud-stat {
+  flex: 1;
+  background: white !important;
+  border: 1px solid #e1e8ed !important;
+}
+
+.chart-container {
+  background: white;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 3rem;
+  max-width: 100%;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.history-item {
+  background: white;
+  padding: 1.2rem 2rem;
+  border-radius: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  transition: transform 0.2s;
+}
+
+.history-item:hover {
+  transform: translateX(5px);
+}
+
+.history-title {
+  font-weight: 700;
+  color: var(--secondary);
+  font-size: 1.1rem;
+}
+
+.history-date {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.history-stats {
+  display: flex;
+  gap: 2rem;
+}
+
+.hist-stat {
+  text-align: right;
+}
+
+.hist-stat .label {
+  display: block;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.hist-stat .value {
+  font-weight: 800;
+  color: var(--primary);
+  font-size: 1.2rem;
+}

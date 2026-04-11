@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <div id="app">
@@ -16,27 +17,51 @@
         <header>
           <div class="logo">AI FIT-<span>TECH</span></div>
           <nav>
-            <a href="#" class="active">Workouts</a>
-            <a href="#">Programs</a>
-            <a href="#">Community</a>
+            <a href="#" class="active" id="nav_workouts">Workouts</a>
+            <a href="#" id="nav_programs">Programs</a>
+            <a href="#" id="nav_journey">My Journey</a>
           </nav>
         </header>
 
-        <section class="hero">
+        <section id="portal_hero" class="hero">
           <h2>Your Personal AI Biomechanics Coach.</h2>
           <p>Professional-grade movement analysis, real-time coaching, and 100+ exercises at your fingertips.</p>
         </section>
 
-        <div class="filter-bar" id="filter_bar">
-          <button class="filter-btn active" data-filter="all">All Exercises</button>
-          <button class="filter-btn" data-filter="upper">Upper Body</button>
-          <button class="filter-btn" data-filter="lower">Lower Body</button>
-          <button class="filter-btn" data-filter="core">Core & Abs</button>
-          <button class="filter-btn" data-filter="yoga">Yoga/Mobility</button>
+        <div id="workouts_view">
+          <div class="filter-bar" id="filter_bar">
+            <button class="filter-btn active" data-filter="all">All Exercises</button>
+            <button class="filter-btn" data-filter="upper">Upper Body</button>
+            <button class="filter-btn" data-filter="lower">Lower Body</button>
+            <button class="filter-btn" data-filter="core">Core & Abs</button>
+            <button class="filter-btn" data-filter="yoga">Yoga/Mobility</button>
+          </div>
+
+          <div class="workout-grid" id="workout_grid">
+            <!-- Cards generated dynamically -->
+          </div>
         </div>
 
-        <div class="workout-grid" id="workout_grid">
-          <!-- Cards generated dynamically -->
+        <!-- My Journey View -->
+        <div id="journey_view" class="hidden">
+          <div class="stats-overview">
+            <div class="hud-stat" style="background: white; border: 1px solid #e1e8ed;">
+              <span class="label" style="color: var(--text-muted);">TOTAL REPS</span>
+              <span id="total_lifetime_reps" class="value" style="color: var(--secondary); font-size: 2.5rem;">0</span>
+            </div>
+            <div class="hud-stat" style="background: white; border: 1px solid #e1e8ed;">
+              <span class="label" style="color: var(--text-muted);">AVG CONSISTENCY</span>
+              <span id="avg_lifetime_consistency" class="value" style="color: var(--primary); font-size: 2.5rem;">0%</span>
+            </div>
+          </div>
+          
+          <div class="chart-container">
+            <canvas id="progress_chart"></canvas>
+          </div>
+
+          <div id="session_history_list" class="history-list">
+            <!-- History items generated dynamically -->
+          </div>
         </div>
       </div>
 
