@@ -16,6 +16,7 @@ const coachingTextEl = document.getElementById("coaching_text");
 const unilateralToggle = document.getElementById("unilateral_toggle");
 const sideBtns = document.querySelectorAll(".side-btn");
 const exitBtn = document.getElementById("exit_session");
+const saveGhostBtn = document.getElementById("save_ghost");
 
 // App State
 let poseLandmarker = undefined;
@@ -32,8 +33,12 @@ let count = 0;
 let currentState = "";
 let currentStageIndex = 0;
 let holdStartTime = null;
-let repAngles = []; // History for consistency score
-let consistencyScore = 0;
+let lastStateChangeTime = Date.now();
+let repAngles = []; 
+let consistencyScore = 100; // Start perfect
+let stabilityPoints = []; // Track mid-hip for stability index
+let stabilityScore = 100;
+let ghostLandmarks = null; // Stored PR skeleton
 
 // Initialization
 const init = async () => {
@@ -113,10 +118,18 @@ const startSession = async (exerciseId) => {
     // Reset Session state
     count = 0;
     repAngles = [];
-    consistencyScore = 0;
+    consistencyScore = 100;
     repCountEl.innerText = "0";
     consistencyMeterEl.innerText = "0%";
     coachingTextEl.innerText = `Starting ${currentExercise.name}. Ready?`;
+
+    // Tier 2: Load Ghost if exists
+    const savedGhost = localStorage.getItem(`ghost_${currentExercise.id}`);
+    if (savedGhost) {
+        ghostLandmarks = JSON.parse(savedGhost);
+    } else {
+        ghostLandmarks = null;
+    }
 
     // Handle View Transition
     portalView.classList.add("hidden");
@@ -178,6 +191,16 @@ const setupEventListeners = () => {
     // Exit
     exitBtn.onclick = exitSession;
 
+    // Tier 2: Save Ghost
+    saveGhostBtn.onclick = () => {
+        if (currentExercise && latestLandmarks) {
+            ghostLandmarks = latestLandmarks;
+            localStorage.setItem(`ghost_${currentExercise.id}`, JSON.stringify(ghostLandmarks));
+            coachingTextEl.innerText = "GHOST PR SAVED!";
+            playFeedbackSound("success");
+        }
+    };
+
     // Side Toggle
     sideBtns.forEach(btn => {
         btn.onclick = () => {
@@ -189,6 +212,8 @@ const setupEventListeners = () => {
 };
 
 // Processing Loop
+let latestLandmarks = null;
+
 async function predictWebcam() {
     if (lastVideoTime !== video.currentTime) {
         lastVideoTime = video.currentTime;
@@ -198,12 +223,25 @@ async function predictWebcam() {
         canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
         
         if (result.landmarks.length > 0) {
-            const landmarks = result.landmarks[0];
+            latestLandmarks = result.landmarks[0];
+            const landmarks = latestLandmarks;
             const drawingUtils = new DrawingUtils(canvasCtx);
             
-            // Clean AI Skeleton Styles
+            // Tier 2: Chrono-Skeleton (Color-coded by performance)
+            let skeletonColor = "#2ED0D8"; // Perfect
+            if (consistencyScore < 85) skeletonColor = "#FFB000"; // Warning
+            if (consistencyScore < 65 || stabilityScore < 70) skeletonColor = "#FF5A5F"; // Error
+            
+            // Draw Ghost if exists
+            if (ghostLandmarks) {
+                drawingUtils.drawConnectors(ghostLandmarks, PoseLandmarker.POSE_CONNECTIONS, { 
+                    color: "rgba(255, 255, 255, 0.2)", 
+                    lineWidth: 2 
+                });
+            }
+
             drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS, { 
-                color: consistencyScore > 80 ? "#2ED0D8" : "#FF5A5F", 
+                color: skeletonColor, 
                 lineWidth: 5 
             });
             drawingUtils.drawLandmarks(landmarks, { color: "#ffffff", lineWidth: 2, radius: 2 });
@@ -216,6 +254,17 @@ async function predictWebcam() {
 }
 
 const processMotion = (landmarks) => {
+    // Tier 2: Track Stability (Mid-Hip Variance)
+    const midHip = {
+        x: (landmarks[23].x + landmarks[24].x) / 2,
+        y: (landmarks[23].y + landmarks[24].y) / 2
+    };
+    stabilityPoints.push(midHip);
+    if (stabilityPoints.length > 30) {
+        calculateStability();
+        stabilityPoints.shift();
+    }
+
     // Joint Mapping Wrapper
     const getL = (name) => {
         const indices = {
@@ -252,10 +301,21 @@ const handleRepExercise = (getL) => {
             count++;
             repAngles.push(angle);
             calculateConsistency();
+            
+            // Tier 2: Rep Success Sounds
+            playFeedbackSound("success");
+            
             repCountEl.innerText = count;
             sendSessionUpdate();
         }
         currentState = config.next;
+        lastStateChangeTime = Date.now();
+    } else {
+        // Tier 2: TUT Check (If stuck in a state too long)
+        const timeInState = (Date.now() - lastStateChangeTime) / 1000;
+        if (timeInState > 4) {
+            coachingTextEl.innerText = "Keep moving! Don't stall.";
+        }
     }
 };
 
@@ -297,7 +357,42 @@ const handleSequenceExercise = (landmarks) => {
     }
 };
 
-// Biometric Math
+// Biometric Math & Audio
+const calculateStability = () => {
+    const avgX = stabilityPoints.reduce((sum, p) => sum + p.x, 0) / stabilityPoints.length;
+    const variance = stabilityPoints.reduce((sum, p) => sum + Math.pow(p.x - avgX, 2), 0) / stabilityPoints.length;
+    const stdDev = Math.sqrt(variance);
+    
+    stabilityScore = Math.max(0, 100 - (stdDev * 1000)); // Highly sensitive to side wobble
+    if (stabilityScore < 70) {
+        playFeedbackSound("warning");
+    }
+};
+
+const playFeedbackSound = (type) => {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    if (type === "success") {
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // High A
+        osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+    } else {
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(110, audioCtx.currentTime); // Low A
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+    }
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.3);
+};
+
 const calculateAngle = (a, b, c) => {
     const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
     let angle = Math.abs((radians * 180.0) / Math.PI);
