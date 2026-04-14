@@ -3,83 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Fit-Tech | Pro Biometrics & Coaching</title>
+    <title>AI Fit-Tech | Baseline</title>
     <link rel="stylesheet" href="./style.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <div id="app">
-      <!-- Portal View -->
-      <div id="portal_view" class="portal-view animate-fade">
-        <header>
-          <div class="logo">AI FIT-<span>TECH</span></div>
-          <nav>
-            <a href="#" class="active" id="nav_workouts">Workouts</a>
-            <a href="#" id="nav_programs">Programs</a>
-            <a href="#" id="nav_journey">My Journey</a>
-          </nav>
-        </header>
-
-        <section id="portal_hero" class="hero">
-          <h2>Your Personal AI Biomechanics Coach.</h2>
-          <p>Professional-grade movement analysis, real-time coaching, and 100+ exercises at your fingertips.</p>
-        </section>
-
-        <div id="workouts_view">
-          <div class="filter-bar" id="filter_bar">
-            <button class="filter-btn active" data-filter="all">All Exercises</button>
-            <button class="filter-btn" data-filter="upper">Upper Body</button>
-            <button class="filter-btn" data-filter="lower">Lower Body</button>
-            <button class="filter-btn" data-filter="core">Core & Abs</button>
-            <button class="filter-btn" data-filter="yoga">Yoga/Mobility</button>
-          </div>
-
-          <div class="workout-grid" id="workout_grid">
-            <!-- Cards generated dynamically -->
-          </div>
-        </div>
-
-        <!-- My Journey View -->
-        <div id="journey_view" class="hidden">
-          <div class="stats-overview">
-            <div class="hud-stat" style="background: white; border: 1px solid #e1e8ed;">
-              <span class="label" style="color: var(--text-muted);">TOTAL REPS</span>
-              <span id="total_lifetime_reps" class="value" style="color: var(--secondary); font-size: 2.5rem;">0</span>
-            </div>
-            <div class="hud-stat" style="background: white; border: 1px solid #e1e8ed;">
-              <span class="label" style="color: var(--text-muted);">AVG CONSISTENCY</span>
-              <span id="avg_lifetime_consistency" class="value" style="color: var(--primary); font-size: 2.5rem;">0%</span>
-            </div>
-          </div>
-          
-          <div class="chart-container">
-            <canvas id="progress_chart"></canvas>
-          </div>
-
-          <div id="session_history_list" class="history-list">
-            <!-- History items generated dynamically -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Session View (Camera Mode) -->
-      <div id="session_view" class="session-view hidden">
-        <button id="exit_session" class="exit-btn">EXIT SESSION</button>
-
-        <div id="unilateral_toggle" class="unilateral-toggle hidden">
-          <button class="side-btn active" data-side="left">LEFT</button>
-          <button class="side-btn" data-side="right">RIGHT</button>
-        </div>
-
+      <div id="session_view" class="session-view">
         <div class="video-wrap">
-          <video id="webcam" autoplay playsinline></video>
-          <canvas id="output_canvas"></canvas>
+          <video id="webcam" autoplay playsinline style="width: 100%; height: 100vh; object-fit: cover; transform: scaleX(-1);"></video>
+          <canvas id="output_canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2010; transform: scaleX(-1); pointer-events: none;"></canvas>
           
           <div class="session-hud">
-            <div class="hud-left">
+            <div class="hud-panel">
               <div class="hud-stat">
                 <span class="label">REPS</span>
                 <span id="rep_count" class="value">0</span>
@@ -89,11 +24,9 @@
                 <span id="consistency_meter" class="value">0%</span>
               </div>
             </div>
-
-            <div class="hud-right">
-              <div class="ai-coach-tag">AI COACH</div>
-              <p id="coaching_text" class="coaching-msg">Position yourself in the frame to begin.</p>
-              <button id="save_ghost" class="side-btn" style="margin-top: 1rem; width: 100%; border: 1px solid var(--primary);">SAVE GHOST PR</button>
+            <div class="coach-panel">
+              <p id="coaching_text">Ready? Select an exercise to start.</p>
+              <select id="exercise_select" style="background: black; color: white; padding: 0.5rem; margin-top: 1rem; border: 1px solid white;"></select>
             </div>
           </div>
         </div>
