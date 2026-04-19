@@ -51,6 +51,8 @@ let consistencyMeterEl;
 let coachingTextEl;
 /** @type {HTMLSelectElement} */
 let exerciseSelect;
+/** @type {HTMLElement} */
+let activeExerciseTitleEl;
 
 /** @type {HTMLElement | null} */
 let repDebugOverlay = null;
@@ -68,6 +70,7 @@ function processMotionFromLandmarks(landmarks) {
     stepRepExercise(currentExercise, getJoint, repSession, {
       repCountEl,
       consistencyMeterEl,
+      coachingTextEl,
     });
     if (repDebugOverlay) {
       const snap = getRepDebugSnapshot(currentExercise, getJoint, repSession);
@@ -127,10 +130,13 @@ function startExercise(exerciseId) {
   repCountEl.innerText = "0";
   consistencyMeterEl.innerText = "100%";
   coachingTextEl.innerText = `Starting ${exercise.name}. Ready?`;
+  if (activeExerciseTitleEl) {
+    activeExerciseTitleEl.innerText = `${exercise.name} Tracker`;
+  }
 
   if (exercise.type === "rep") {
     if (exercise.rep_accuracy) {
-      const start = exercise.rep_accuracy.start_phase;
+      const start = exercise.rep_accuracy.start_phase || "extended";
       repSession.repPhase = start === "flexed" ? "flexed" : "extended";
     } else {
       repSession.currentState = Object.keys(exercise.states)[0];
@@ -140,7 +146,11 @@ function startExercise(exerciseId) {
 
 function populateExerciseSelect() {
   exerciseSelect.innerHTML = '<option value="">Select Exercise</option>';
-  for (const ex of exerciseData) {
+  
+  const targetExercises = ["pushup", "squat", "lunge", "bicep_curl"];
+  const filteredData = exerciseData.filter(ex => targetExercises.includes(ex.id));
+
+  for (const ex of filteredData) {
     const opt = document.createElement("option");
     opt.value = ex.id;
     opt.innerText = ex.name;
@@ -200,6 +210,7 @@ function cacheDomReferences() {
   consistencyMeterEl = document.getElementById("consistency_meter");
   coachingTextEl = document.getElementById("coaching_text");
   exerciseSelect = document.getElementById("exercise_select");
+  activeExerciseTitleEl = document.getElementById("active_exercise_title");
 }
 
 /**

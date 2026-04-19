@@ -2,6 +2,40 @@ import { jointAngleDegrees, evaluateAngleCondition } from "./geometry.js";
 import { updateConsistencyMeter } from "./consistency.js";
 
 /**
+ * Provide simple rule-based feedback to the UI.
+ */
+function provideExerciseFeedback(id, angle, session, hud) {
+  if (!hud.coachingTextEl) return;
+  const phase = session.repPhase || session.currentState;
+
+  if (id === "pushup") {
+    if (phase === "extended") {
+       hud.coachingTextEl.innerText = angle < 120 ? "Go lower. Keep your back straight." : "Ready. Keep your back straight.";
+    } else {
+       hud.coachingTextEl.innerText = "Good depth! Push up!";
+    }
+  } else if (id === "squat") {
+    if (phase === "extended") {
+       hud.coachingTextEl.innerText = angle < 140 ? "Go lower." : "Ready. Keep chest up.";
+    } else {
+       hud.coachingTextEl.innerText = "Great depth! Drive up!";
+    }
+  } else if (id === "lunge") {
+    if (phase === "extended") {
+       hud.coachingTextEl.innerText = angle < 140 ? "Step deeper." : "Ready. Core tight.";
+    } else {
+       hud.coachingTextEl.innerText = "Good lunge! Drive back up.";
+    }
+  } else if (id === "bicep_curl") {
+    if (phase === "extended") {
+       hud.coachingTextEl.innerText = angle < 100 ? "Curl all the way up!" : "Full extension.";
+    } else {
+       hud.coachingTextEl.innerText = "Squeeze! Control it down.";
+    }
+  }
+}
+
+/**
  * Legacy JSON state machine (single-frame transition when condition is true).
  */
 function stepRepExerciseLegacy(exercise, angle, session, hud) {
@@ -101,10 +135,11 @@ export function stepRepExercise(exercise, getJoint, session, hud) {
 
   if (exercise.rep_accuracy) {
     stepRepExerciseStable(exercise, angle, session, hud);
-    return;
+  } else {
+    stepRepExerciseLegacy(exercise, angle, session, hud);
   }
 
-  stepRepExerciseLegacy(exercise, angle, session, hud);
+  provideExerciseFeedback(exercise.id, angle, session, hud);
 }
 
 /**
