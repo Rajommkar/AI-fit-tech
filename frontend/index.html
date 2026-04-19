@@ -3,35 +3,169 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AI Fit-Tech | Baseline</title>
+    <title>AI Fit-Tech | NeonFit Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="./style.css" />
   </head>
-  <body>
+  <body class="page-body">
     <div id="app">
-      <div id="session_view" class="session-view">
-        <div class="video-wrap">
-          <video id="webcam" autoplay playsinline style="width: 100%; height: 100vh; object-fit: cover; transform: scaleX(-1);"></video>
-          <canvas id="output_canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2010; transform: scaleX(-1); pointer-events: none;"></canvas>
-          
-          <div class="session-hud">
-            <div class="hud-panel">
-              <div class="hud-stat">
-                <span class="label">REPS</span>
-                <span id="rep_count" class="value">0</span>
-              </div>
-              <div class="hud-stat">
-                <span class="label">CONSISTENCY</span>
-                <span id="consistency_meter" class="value">0%</span>
-              </div>
-            </div>
-            <div class="coach-panel">
-              <p id="coaching_text">Ready? Select an exercise to start.</p>
-              <select id="exercise_select" style="background: black; color: white; padding: 0.5rem; margin-top: 1rem; border: 1px solid white;"></select>
-            </div>
+      <header class="header">
+        <div class="header__container">
+          <a href="#app" class="header__logo">
+            <i class="ph ph-activity"></i> NEONFIT
+          </a>
+
+          <nav class="header__nav nav">
+            <ul class="nav__list">
+              <li class="nav__item nav__item--has-mega">
+                <a href="#programs" class="nav__link">
+                  Workouts <i class="ph ph-caret-down nav__icon"></i>
+                </a>
+
+                <div class="mega-menu">
+                  <div class="mega-menu__grid">
+                    <div class="mega-menu__column">
+                      <h3 class="mega-menu__title"><i class="ph ph-barbell"></i> By Training Type</h3>
+                      <ul class="mega-menu__list">
+                        <li><a href="#tracker" class="mega-menu__link">Strength & Hypertrophy</a></li>
+                        <li><a href="#tracker" class="mega-menu__link">HIIT & Cardio</a></li>
+                        <li><a href="#tracker" class="mega-menu__link">Mobility & Recovery</a></li>
+                      </ul>
+                    </div>
+
+                    <div class="mega-menu__column">
+                      <h3 class="mega-menu__title"><i class="ph ph-body-cam"></i> By Muscle Group</h3>
+                      <ul class="mega-menu__list">
+                        <li><a href="#tracker" class="mega-menu__link">Upper Body Focus</a></li>
+                        <li><a href="#tracker" class="mega-menu__link">Lower Body & Glutes</a></li>
+                        <li><a href="#tracker" class="mega-menu__link">Core Intense</a></li>
+                      </ul>
+                    </div>
+
+                    <div class="mega-menu__column">
+                      <h3 class="mega-menu__title"><i class="ph ph-timer"></i> Quick Filters</h3>
+                      <ul class="mega-menu__list">
+                        <li><a href="#tracker" class="mega-menu__link">Under 20 Minutes</a></li>
+                        <li><a href="#tracker" class="mega-menu__link">No Equipment Needed</a></li>
+                        <li><a href="#tracker" class="mega-menu__link">Apartment Friendly</a></li>
+                      </ul>
+                    </div>
+
+                    <div class="mega-menu__column mega-menu__column--featured">
+                      <div class="feature-card">
+                        <span class="feature-card__badge">Live Tracker</span>
+                        <h4 class="feature-card__title">AI Form Analysis</h4>
+                        <p class="feature-card__subtitle">Real-time pose feedback with consistency scoring.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              <li class="nav__item"><a href="#programs" class="nav__link">Programs</a></li>
+              <li class="nav__item"><a href="#tracker" class="nav__link">AI Coach</a></li>
+            </ul>
+          </nav>
+
+          <div class="header__actions">
+            <a href="#tracker" class="button button--outline">Log In</a>
+            <a href="#tracker" class="button button--neon">Start Free Trial <i class="ph ph-arrow-right"></i></a>
           </div>
         </div>
-      </div>
+      </header>
+
+      <main class="main-content">
+        <section class="hero">
+          <div class="hero__content">
+            <p class="hero__eyebrow">AI-Powered Motion Intelligence</p>
+            <h1 class="hero__title">Turn your browser into a personal biomechanics coach.</h1>
+            <p class="hero__text">
+              Track reps, measure movement consistency, and get instant exercise switching with a neon-styled
+              workout dashboard built for camera-based training.
+            </p>
+            <div class="hero__actions">
+              <a href="#tracker" class="button button--neon">Launch Tracker <i class="ph ph-play"></i></a>
+              <a href="#programs" class="button button--ghost">Explore Programs</a>
+            </div>
+          </div>
+
+          <div class="hero__panel">
+            <div class="hero-metric">
+              <span class="hero-metric__label">Realtime</span>
+              <strong class="hero-metric__value">33 Landmarks</strong>
+            </div>
+            <div class="hero-metric">
+              <span class="hero-metric__label">Built For</span>
+              <strong class="hero-metric__value">Form Tracking</strong>
+            </div>
+            <div class="hero-metric">
+              <span class="hero-metric__label">Workout Modes</span>
+              <strong class="hero-metric__value">Rep, Hold, Sequence</strong>
+            </div>
+          </div>
+        </section>
+
+        <section id="programs" class="programs">
+          <article class="program-card">
+            <span class="program-card__tag">Precision</span>
+            <h2 class="program-card__title">Rep analytics that react to your movement.</h2>
+            <p class="program-card__text">Angles, state changes, and live counting stay visible while you train.</p>
+          </article>
+          <article class="program-card">
+            <span class="program-card__tag">Feedback</span>
+            <h2 class="program-card__title">Exercise switching without leaving the session.</h2>
+            <p class="program-card__text">Choose a supported movement and the tracker updates instantly.</p>
+          </article>
+          <article class="program-card">
+            <span class="program-card__tag">Focus</span>
+            <h2 class="program-card__title">A landing page and live tracker in one flow.</h2>
+            <p class="program-card__text">Your generated website now wraps the existing AI workout experience.</p>
+          </article>
+        </section>
+
+        <section id="tracker" class="tracker-section">
+          <div class="tracker-section__intro">
+            <p class="tracker-section__eyebrow">Live Session</p>
+            <h2 class="tracker-section__title">AI tracker</h2>
+            <p class="tracker-section__text">
+              Allow camera access, choose an exercise, and the app will begin detecting movement in real time.
+            </p>
+          </div>
+
+          <div id="session_view" class="session-view">
+            <div class="video-wrap">
+              <video id="webcam" autoplay playsinline></video>
+              <canvas id="output_canvas"></canvas>
+
+              <div class="session-hud">
+                <div class="hud-panel">
+                  <div class="hud-stat">
+                    <span class="label">REPS</span>
+                    <span id="rep_count" class="value">0</span>
+                  </div>
+                  <div class="hud-stat">
+                    <span class="label">CONSISTENCY</span>
+                    <span id="consistency_meter" class="value">0%</span>
+                  </div>
+                </div>
+
+                <div class="coach-panel">
+                  <p id="coaching_text">Ready? Select an exercise to start.</p>
+                  <select id="exercise_select"></select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
+
     <script type="module" src="/main.js"></script>
   </body>
 </html>
