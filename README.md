@@ -44,6 +44,20 @@ The Vite entry file `frontend/main.js` only imports `startSessionApp()` from `se
 
 No separate “pushup detector”: behavior is entirely **JSON + shared geometry + one rep state machine**.
 
+### Rep accuracy tuning (Week 1 · Day 2)
+
+For `type: "rep"` entries you can add optional **`rep_accuracy`** so counting uses **separate flex vs extend angle limits**, **consecutive stable frames** (noise rejection), and a **cooldown** between counted reps. Exercises without `rep_accuracy` still use the legacy `states` machine.
+
+| Field | Meaning |
+|--------|---------|
+| `flexed_max_angle` | Angle must stay **below** this to register the “deep” part of the rep (stable frames accumulate). |
+| `extended_min_angle` | Angle must stay **above** this for the “top” / lockout part. |
+| `required_frames` | How many consecutive frames in-bucket before a phase change (default `3`). |
+| `cooldown_ms` | Minimum milliseconds between **incremented** reps (default `500`). Phase still resets so you do not get stuck. |
+| `start_phase` | `"extended"` or `"flexed"` (default `"extended"`). |
+
+One full rep = **extended → flexed → extended** with stable frames at each end; the rep increments when returning to extended after a cooldown check.
+
 ## 🛠️ Setup Instructions
 
 ### Backend

@@ -5,6 +5,13 @@
       "name": "Bodyweight Squat",
       "type": "rep",
       "joints": ["left_hip", "left_knee", "left_ankle"],
+      "rep_accuracy": {
+        "flexed_max_angle": 95,
+        "extended_min_angle": 158,
+        "required_frames": 3,
+        "cooldown_ms": 500,
+        "start_phase": "extended"
+      },
       "states": {
         "UP": { "condition": "angle > 160", "next": "DOWN" },
         "DOWN": { "condition": "angle < 90", "next": "UP", "count_on": "UP" }
@@ -15,6 +22,13 @@
       "name": "Pushup",
       "type": "rep",
       "joints": ["left_shoulder", "left_elbow", "left_wrist"],
+      "rep_accuracy": {
+        "flexed_max_angle": 72,
+        "extended_min_angle": 158,
+        "required_frames": 3,
+        "cooldown_ms": 500,
+        "start_phase": "extended"
+      },
       "states": {
         "UP": { "condition": "angle > 160", "next": "DOWN" },
         "DOWN": { "condition": "angle < 80", "next": "UP", "count_on": "UP" }
@@ -25,6 +39,13 @@
       "name": "Bicep Curl",
       "type": "rep",
       "joints": ["left_shoulder", "left_elbow", "left_wrist"],
+      "rep_accuracy": {
+        "flexed_max_angle": 42,
+        "extended_min_angle": 155,
+        "required_frames": 3,
+        "cooldown_ms": 500,
+        "start_phase": "extended"
+      },
       "states": {
         "DOWN": { "condition": "angle > 160", "next": "UP" },
         "UP": { "condition": "angle < 40", "next": "DOWN", "count_on": "UP" }
@@ -36,6 +57,13 @@
       "type": "rep",
       "unilateral": true,
       "joints": ["left_hip", "left_knee", "left_ankle"],
+      "rep_accuracy": {
+        "flexed_max_angle": 102,
+        "extended_min_angle": 158,
+        "required_frames": 3,
+        "cooldown_ms": 500,
+        "start_phase": "extended"
+      },
       "states": {
         "UP": { "condition": "angle > 160", "next": "DOWN" },
         "DOWN": { "condition": "angle < 100", "next": "UP", "count_on": "UP" }
@@ -82,6 +110,13 @@
       "name": "Glute Bridge",
       "type": "rep",
       "joints": ["left_shoulder", "left_hip", "left_knee"],
+      "rep_accuracy": {
+        "flexed_max_angle": 128,
+        "extended_min_angle": 162,
+        "required_frames": 3,
+        "cooldown_ms": 500,
+        "start_phase": "extended"
+      },
       "states": {
         "DOWN": { "condition": "angle < 130", "next": "UP" },
         "UP": { "condition": "angle > 160", "next": "DOWN", "count_on": "UP" }
@@ -102,6 +137,13 @@
       "name": "Mountain Climber",
       "type": "rep",
       "joints": ["left_hip", "left_knee", "left_ankle"],
+      "rep_accuracy": {
+        "flexed_max_angle": 72,
+        "extended_min_angle": 148,
+        "required_frames": 3,
+        "cooldown_ms": 450,
+        "start_phase": "extended"
+      },
       "states": {
         "EXTENDED": { "condition": "angle > 150", "next": "TUCKED" },
         "TUCKED": { "condition": "angle < 70", "next": "EXTENDED", "count_on": "EXTENDED" }

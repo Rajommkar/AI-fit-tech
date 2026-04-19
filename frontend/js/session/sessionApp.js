@@ -25,6 +25,11 @@ const repSession = {
   count: 0,
   /** @type {number[]} */
   repAngles: [],
+  /** "extended" | "flexed" — used when exercise.rep_accuracy is set */
+  repPhase: "extended",
+  flexedStableFrames: 0,
+  extendedStableFrames: 0,
+  lastRepTimeMs: 0,
 };
 
 const sequenceSession = {
@@ -79,6 +84,10 @@ function startExercise(exerciseId) {
   repSession.count = 0;
   repSession.repAngles = [];
   repSession.currentState = "";
+  repSession.flexedStableFrames = 0;
+  repSession.extendedStableFrames = 0;
+  repSession.lastRepTimeMs = 0;
+  repSession.repPhase = "extended";
   sequenceSession.count = 0;
   sequenceSession.currentStageIndex = 0;
 
@@ -87,7 +96,12 @@ function startExercise(exerciseId) {
   coachingTextEl.innerText = `Starting ${exercise.name}. Ready?`;
 
   if (exercise.type === "rep") {
-    repSession.currentState = Object.keys(exercise.states)[0];
+    if (exercise.rep_accuracy) {
+      const start = exercise.rep_accuracy.start_phase;
+      repSession.repPhase = start === "flexed" ? "flexed" : "extended";
+    } else {
+      repSession.currentState = Object.keys(exercise.states)[0];
+    }
   }
 }
 
