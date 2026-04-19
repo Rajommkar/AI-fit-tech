@@ -32,6 +32,18 @@ The camera session is split by responsibility under `frontend/js/session/`:
 
 The Vite entry file `frontend/main.js` only imports `startSessionApp()` from `sessionApp.js`.
 
+### Example: how one pushup rep is counted (~30 seconds)
+
+1. **Data** — In `common/exercises.json`, the pushup entry is `type: "rep"` with three joints (shoulder → elbow → wrist) and a **state machine** (`UP` / `DOWN`) where each state has a string condition on the elbow angle, e.g. `angle < 80`, and a `next` state. One state may set `count_on` so a rep increments when that transition happens.
+
+2. **Pose** — Each frame, MediaPipe in `poseDetection.js` returns normalized landmarks. `sessionApp.js` passes them into the rep pipeline.
+
+3. **Angle** — `repExercise.js` resolves the three joint positions, then `geometry.js` computes the **interior angle at the elbow** in degrees (2D in x/y, same as before the refactor).
+
+4. **Rep** — If the current state’s condition is true, the machine advances to `next`. If `count_on` matches the state you are leaving, the rep counter increases and the angle is stored for the **consistency** meter (`consistency.js`).
+
+No separate “pushup detector”: behavior is entirely **JSON + shared geometry + one rep state machine**.
+
 ## 🛠️ Setup Instructions
 
 ### Backend
