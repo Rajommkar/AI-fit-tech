@@ -10,7 +10,7 @@ function provideExerciseFeedback(id, angle, session, hud) {
 
   if (id === "pushup") {
     if (phase === "extended") {
-       hud.coachingTextEl.innerText = angle < 120 ? "Go lower. Keep your back straight." : "Ready. Keep your back straight.";
+       hud.coachingTextEl.innerText = angle < 120 ? "Keep back straight." : "Ready. Keep back straight.";
     } else {
        hud.coachingTextEl.innerText = "Good depth! Push up!";
     }
@@ -30,7 +30,7 @@ function provideExerciseFeedback(id, angle, session, hud) {
     if (phase === "extended") {
        hud.coachingTextEl.innerText = angle < 100 ? "Curl all the way up!" : "Full extension.";
     } else {
-       hud.coachingTextEl.innerText = "Squeeze! Control it down.";
+       hud.coachingTextEl.innerText = "Control movement.";
     }
   }
 }

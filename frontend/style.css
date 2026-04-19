@@ -495,20 +495,35 @@ ul {
   color: var(--color-text-main);
 }
 
-#exercise_select {
-  width: 100%;
-  background: #050505;
-  color: var(--color-text-main);
-  padding: 0.85rem 1rem;
+.exercise-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-top: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 12px;
-  font: inherit;
 }
 
-#exercise_select:focus {
-  outline: 1px solid var(--color-neon);
+.exercise-btn {
+  background: var(--color-bg-base);
+  color: var(--color-text-main);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: var(--transition-smooth);
+}
+
+.exercise-btn:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.exercise-btn.active {
+  background: var(--color-neon-dim);
   border-color: var(--color-neon);
+  color: var(--color-neon);
   box-shadow: var(--shadow-neon);
 }
 

@@ -146,6 +146,10 @@
               <div class="session-hud">
                 <div class="hud-panel">
                   <div class="hud-stat">
+                    <span class="label">EXERCISE</span>
+                    <span id="active_exercise_hud" class="value">—</span>
+                  </div>
+                  <div class="hud-stat">
                     <span class="label">REPS</span>
                     <span id="rep_count" class="value">0</span>
                   </div>
@@ -157,7 +161,7 @@
 
                 <div class="coach-panel">
                   <p id="coaching_text">Ready? Select an exercise to start.</p>
-                  <select id="exercise_select"></select>
+                  <div id="exercise_buttons" class="exercise-buttons"></div>
                 </div>
               </div>
             </div>

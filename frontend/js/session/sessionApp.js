@@ -49,10 +49,12 @@ let repCountEl;
 let consistencyMeterEl;
 /** @type {HTMLElement} */
 let coachingTextEl;
-/** @type {HTMLSelectElement} */
-let exerciseSelect;
+/** @type {HTMLElement} */
+let exerciseButtonsContainerEl;
 /** @type {HTMLElement} */
 let activeExerciseTitleEl;
+/** @type {HTMLElement} */
+let activeExerciseHudEl;
 
 /** @type {HTMLElement | null} */
 let repDebugOverlay = null;
@@ -129,9 +131,23 @@ function startExercise(exerciseId) {
 
   repCountEl.innerText = "0";
   consistencyMeterEl.innerText = "100%";
-  coachingTextEl.innerText = `Starting ${exercise.name}. Ready?`;
   if (activeExerciseTitleEl) {
     activeExerciseTitleEl.innerText = `${exercise.name} Tracker`;
+  }
+  if (activeExerciseHudEl) {
+    activeExerciseHudEl.innerText = exercise.name;
+  }
+  coachingTextEl.innerText = `Switched to ${exercise.name}. Ready?`;
+
+  // Update button active states
+  if (exerciseButtonsContainerEl) {
+    for (const btn of exerciseButtonsContainerEl.children) {
+      if (btn.dataset.id === exerciseId) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    }
   }
 
   if (exercise.type === "rep") {
@@ -144,24 +160,21 @@ function startExercise(exerciseId) {
   }
 }
 
-function populateExerciseSelect() {
-  exerciseSelect.innerHTML = '<option value="">Select Exercise</option>';
+function populateExerciseButtons() {
+  if (!exerciseButtonsContainerEl) return;
+  exerciseButtonsContainerEl.innerHTML = '';
   
   const targetExercises = ["pushup", "squat", "lunge", "bicep_curl"];
-  const filteredData = exerciseData.filter(ex => targetExercises.includes(ex.id));
+  const filteredData = exerciseData.filter((ex) => targetExercises.includes(ex.id));
 
   for (const ex of filteredData) {
-    const opt = document.createElement("option");
-    opt.value = ex.id;
-    opt.innerText = ex.name;
-    exerciseSelect.appendChild(opt);
+    const btn = document.createElement("button");
+    btn.className = "exercise-btn";
+    btn.dataset.id = ex.id;
+    btn.innerText = ex.name;
+    btn.onclick = () => startExercise(ex.id);
+    exerciseButtonsContainerEl.appendChild(btn);
   }
-
-  exerciseSelect.onchange = (e) => {
-    const target = /** @type {HTMLSelectElement} */ (e.target);
-    const id = target.value;
-    if (id) startExercise(id);
-  };
 }
 
 function enableWebcam() {
@@ -209,8 +222,9 @@ function cacheDomReferences() {
   repCountEl = document.getElementById("rep_count");
   consistencyMeterEl = document.getElementById("consistency_meter");
   coachingTextEl = document.getElementById("coaching_text");
-  exerciseSelect = document.getElementById("exercise_select");
+  exerciseButtonsContainerEl = document.getElementById("exercise_buttons");
   activeExerciseTitleEl = document.getElementById("active_exercise_title");
+  activeExerciseHudEl = document.getElementById("active_exercise_hud");
 }
 
 /**
@@ -222,7 +236,7 @@ export async function startSessionApp() {
 
   try {
     exerciseData = await fetchExerciseDefinitions();
-    populateExerciseSelect();
+    populateExerciseButtons();
   } catch (e) {
     console.error("Failed to load exercises", e);
   }
