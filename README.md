@@ -54,9 +54,12 @@ For `type: "rep"` entries you can add optional **`rep_accuracy`** so counting us
 | `extended_min_angle` | Angle must stay **above** this for the “top” / lockout part. |
 | `required_frames` | How many consecutive frames in-bucket before a phase change (default `3`). |
 | `cooldown_ms` | Minimum milliseconds between **incremented** reps (default `500`). Phase still resets so you do not get stuck. |
+| `min_rep_duration_ms` | Extra floor between counted reps (default `800`). The tracker uses **max(`cooldown_ms`, `min_rep_duration_ms`)** so very fast bounces cannot outrun a short cooldown alone. |
 | `start_phase` | `"extended"` or `"flexed"` (default `"extended"`). |
 
 One full rep = **extended → flexed → extended** with stable frames at each end; the rep increments when returning to extended after a cooldown check.
+
+**Tuner overlay:** open the tracker with query **`?repDebug=1`** (e.g. `http://localhost:5173/?repDebug=1#tracker`) to show live angle, phase, legacy state, mode, and stable frame counters while you adjust JSON.
 
 ## 🛠️ Setup Instructions
 

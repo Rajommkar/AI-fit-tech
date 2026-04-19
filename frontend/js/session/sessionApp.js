@@ -7,7 +7,7 @@ import {
   syncCanvasSizeToVideo,
 } from "./poseDetection.js";
 import { createJointGetter } from "./landmarks.js";
-import { stepRepExercise } from "./repExercise.js";
+import { getRepDebugSnapshot, stepRepExercise } from "./repExercise.js";
 import { stepSequenceExercise } from "./sequenceExercise.js";
 
 /** @type {import('@mediapipe/tasks-vision').PoseLandmarker | undefined} */
@@ -52,6 +52,9 @@ let coachingTextEl;
 /** @type {HTMLSelectElement} */
 let exerciseSelect;
 
+/** @type {HTMLElement | null} */
+let repDebugOverlay = null;
+
 /**
  * Pose landmarks → exercise-specific rep / sequence logic.
  * @param {import('@mediapipe/tasks-vision').NormalizedLandmark[]} landmarks
@@ -66,13 +69,43 @@ function processMotionFromLandmarks(landmarks) {
       repCountEl,
       consistencyMeterEl,
     });
+    if (repDebugOverlay) {
+      const snap = getRepDebugSnapshot(currentExercise, getJoint, repSession);
+      const angleStr =
+        snap.angle === null ? "—" : `${snap.angle.toFixed(1)}°`;
+      repDebugOverlay.innerHTML = [
+        `angle: ${angleStr}`,
+        `phase: ${snap.phase}`,
+        `state: ${snap.state}`,
+        `mode: ${snap.mode}`,
+        `fFrames: ${snap.flexedStableFrames} · eFrames: ${snap.extendedStableFrames}`,
+      ].join("<br>");
+    }
     return;
   }
   if (type === "sequence") {
     stepSequenceExercise(currentExercise, landmarks, sequenceSession, {
       repCountEl,
     });
+    if (repDebugOverlay) {
+      repDebugOverlay.innerHTML = [
+        "angle: —",
+        "phase: —",
+        `state: stage ${sequenceSession.currentStageIndex}`,
+        "mode: sequence",
+      ].join("<br>");
+    }
   }
+}
+
+function setupRepDebugOverlay() {
+  if (!new URLSearchParams(window.location.search).has("repDebug")) return;
+  const el = document.createElement("div");
+  el.className = "rep-debug-overlay";
+  el.setAttribute("aria-hidden", "true");
+  el.textContent = "rep debug — select exercise";
+  document.body.appendChild(el);
+  repDebugOverlay = el;
 }
 
 function startExercise(exerciseId) {
@@ -146,6 +179,8 @@ async function runWebcamPredictionLoop() {
         const landmarks = result.landmarks[0];
         drawPoseOverlay(canvasCtx, landmarks, PoseLandmarker);
         processMotionFromLandmarks(landmarks);
+      } else if (repDebugOverlay && currentExercise?.type === "rep") {
+        repDebugOverlay.textContent = "no pose";
       }
       canvasCtx.restore();
     }
@@ -172,6 +207,7 @@ function cacheDomReferences() {
  */
 export async function startSessionApp() {
   cacheDomReferences();
+  setupRepDebugOverlay();
 
   try {
     exerciseData = await fetchExerciseDefinitions();

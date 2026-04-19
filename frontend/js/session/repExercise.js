@@ -29,6 +29,7 @@ function stepRepExerciseLegacy(exercise, angle, session, hud) {
  * - extended_min_angle — angle must stay above this for "extended" stability
  * - required_frames (optional, default 3)
  * - cooldown_ms (optional, default 500)
+ * - min_rep_duration_ms (optional, default 800) — floor time between counted reps; uses max(cooldown_ms, this) so fast bounces cannot slip through a short cooldown alone
  * - start_phase (optional): "extended" | "flexed"
  */
 function stepRepExerciseStable(exercise, angle, session, hud) {
@@ -39,6 +40,8 @@ function stepRepExerciseStable(exercise, angle, session, hud) {
 
   const requiredFrames = ra.required_frames ?? 3;
   const cooldownMs = ra.cooldown_ms ?? 500;
+  const minRepDurationMs = ra.min_rep_duration_ms ?? 800;
+  const minGapMs = Math.max(cooldownMs, minRepDurationMs);
 
   if (angle < flexMax) {
     session.flexedStableFrames += 1;
@@ -60,7 +63,7 @@ function stepRepExerciseStable(exercise, angle, session, hud) {
 
   if (session.repPhase === "flexed" && session.extendedStableFrames >= requiredFrames) {
     const now = Date.now();
-    if (now - session.lastRepTimeMs >= cooldownMs) {
+    if (now - session.lastRepTimeMs >= minGapMs) {
       session.count += 1;
       session.lastRepTimeMs = now;
       session.repAngles.push(angle);
@@ -102,4 +105,37 @@ export function stepRepExercise(exercise, getJoint, session, hud) {
   }
 
   stepRepExerciseLegacy(exercise, angle, session, hud);
+}
+
+/**
+ * Live values for tuning JSON (`?repDebug=1` on the tracker page).
+ * @param {object} exercise
+ * @param {(name: string) => import('@mediapipe/tasks-vision').NormalizedLandmark | undefined} getJoint
+ * @param {{ currentState: string, repPhase: string, flexedStableFrames: number, extendedStableFrames: number }} session
+ */
+export function getRepDebugSnapshot(exercise, getJoint, session) {
+  const joints = exercise.joints.map((j) => getJoint(j));
+  if (!joints.every(Boolean)) {
+    return {
+      angle: null,
+      phase: exercise.rep_accuracy
+        ? session.repPhase
+        : session.currentState || "—",
+      state: session.currentState || "—",
+      mode: exercise.rep_accuracy ? "stable" : "legacy",
+      flexedStableFrames: session.flexedStableFrames,
+      extendedStableFrames: session.extendedStableFrames,
+    };
+  }
+  const angle = jointAngleDegrees(joints[0], joints[1], joints[2]);
+  return {
+    angle,
+    phase: exercise.rep_accuracy
+      ? session.repPhase
+      : session.currentState || "—",
+    state: session.currentState || "—",
+    mode: exercise.rep_accuracy ? "stable" : "legacy",
+    flexedStableFrames: session.flexedStableFrames,
+    extendedStableFrames: session.extendedStableFrames,
+  };
 }
