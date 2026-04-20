@@ -5,75 +5,35 @@ import { updateConsistencyMeter } from "./consistency.js";
  * Evaluate geometry to provide real-time form correction.
  * Returns a dictionary object containing feedback and color.
  */
-function provideExerciseFeedback(exercise, angle, session, getJoint) {
-  const id = exercise.id;
+function checkGenericForm(exercise, angle, session, getJoint) {
   const phase = session.repPhase || session.currentState;
   const flexMax = exercise.rep_accuracy?.flexed_max_angle || 90;
   
-  let feedback = "";
-  let color = "#00ff00"; // Default Green
+  let feedback = "Good form";
+  let color = "#00ff00";
 
-  if (id === "pushup") {
-    const s = getJoint("left_shoulder");
-    const h = getJoint("left_hip");
-    const a = getJoint("left_ankle");
-    let backAngle = 180;
-    if (s && h && a) backAngle = jointAngleDegrees(s, h, a);
-
-    if (backAngle < 160) {
+  // Check bad posture (generic core tracking if available)
+  const shoulder = getJoint("left_shoulder");
+  const hip = getJoint("left_hip");
+  const ankle = getJoint("left_ankle");
+  if (shoulder && hip && ankle) {
+    const coreAngle = jointAngleDegrees(shoulder, hip, ankle);
+    // Any exercise tracking the spine
+    if (coreAngle < 155) {
+      if (session.repFlags) session.repFlags.badPosture = true;
       feedback = "Keep back straight";
-      color = "#ffff00"; // Yellow Warning
-    } else if (phase === "extended" && angle > flexMax && angle < 140) {
-      feedback = "Go lower";
-      color = "#ff4444"; // Red Danger
-    } else if (phase === "extended") {
-      feedback = "Ready. Keep back straight.";
-      color = "#ffffff";
-    } else {
-      feedback = "Good depth! Push up!";
-      color = "#00ff00"; // Green Good
-    }
-  } else if (id === "squat") {
-    if (phase === "extended" && angle > flexMax && angle < 150) {
-      feedback = "Go deeper";
-      color = "#ff4444";
-    } else if (phase === "extended") {
-      feedback = "Ready. Keep chest up.";
-      color = "#ffffff";
-    } else {
-      feedback = "Great depth! Drive up!";
-      color = "#00ff00";
-    }
-  } else if (id === "lunge") {
-    if (phase === "extended" && angle > flexMax && angle < 150) {
-      feedback = "Step deeper";
-      color = "#ff4444";
-    } else if (phase === "extended") {
-      feedback = "Ready. Core tight.";
-      color = "#ffffff";
-    } else {
-      feedback = "Good lunge! Drive back up.";
-      color = "#00ff00";
-    }
-  } else if (id === "bicep_curl") {
-    if (phase === "extended" && angle < 40) {
-      feedback = "Don't swing your arm";
       color = "#ffff00";
-    } else if (phase === "extended" && angle > 100 && angle < 150) {
-      feedback = "Fully extend your arm";
-      color = "#ffff00";
-    } else if (phase === "extended") {
-      feedback = "Ready. Control movement.";
-      color = "#ffffff";
-    } else {
-      feedback = "Control movement";
-      color = "#00ff00";
     }
   }
 
-  if (!feedback) {
-    feedback = "Good form";
-    color = "#00ff00";
+  // Check incomplete rep (generic max flex targeting)
+  if (phase === "extended" && angle > flexMax && angle < flexMax + 60) {
+      if (session.repFlags) session.repFlags.incompleteRep = true;
+      feedback = "Go deeper";
+      color = "#ff4444";
+  } else if (phase === "extended" && feedback === "Good form") {
+      feedback = "Ready.";
+      color = "#ffffff";
   }
 
   return { feedback, color };
@@ -134,24 +94,62 @@ function stepRepExerciseStable(exercise, angle, session, hud) {
 
   if (session.repPhase === "extended" && session.flexedStableFrames >= requiredFrames) {
     session.repPhase = "flexed";
+    session.repStartTime = Date.now();
     session.flexedStableFrames = 0;
     session.extendedStableFrames = 0;
-    return;
+    return null;
   }
 
   if (session.repPhase === "flexed" && session.extendedStableFrames >= requiredFrames) {
     const now = Date.now();
+    let speedFeedback = null;
+    let rating = null;
+
     if (now - session.lastRepTimeMs >= minGapMs) {
       session.count += 1;
+      const duration = session.repStartTime ? now - session.repStartTime : 0;
       session.lastRepTimeMs = now;
       session.repAngles.push(angle);
       updateConsistencyMeter(session.repAngles, hud.consistencyMeterEl);
       hud.repCountEl.innerText = String(session.count);
+
+      const min_time = exercise.scoring?.min_time || 800;
+      const max_time = exercise.scoring?.max_time || 3000;
+      
+      speedFeedback = "Good Speed";
+      if (duration > 0 && duration < min_time) speedFeedback = "Too Fast";
+      else if (duration > max_time) speedFeedback = "Too Slow";
+
+      if (session.repFlags?.badPosture) session.formScore -= 30;
+      if (session.repFlags?.incompleteRep) session.formScore -= 40;
+
+      rating = "Good Rep";
+      if (session.formScore > 80 && speedFeedback === "Good Speed") rating = "Perfect Rep";
+      else if (session.formScore < 60) rating = "Bad Rep";
+
+      if (session.repHistory) {
+        session.repHistory.push({
+          duration,
+          formScore: session.formScore,
+          rating,
+          speed: speedFeedback
+        });
+      }
+
+      session.formScore = 100;
+      if (session.repFlags) {
+        session.repFlags.badPosture = false;
+        session.repFlags.incompleteRep = false;
+      }
     }
+    
     session.repPhase = "extended";
     session.flexedStableFrames = 0;
     session.extendedStableFrames = 0;
+    
+    return speedFeedback ? { speed: speedFeedback, rating } : null;
   }
+  return null;
 }
 
 /**
@@ -177,18 +175,21 @@ export function stepRepExercise(exercise, getJoint, session, hud) {
 
   const angle = jointAngleDegrees(joints[0], joints[1], joints[2]);
 
+  let metrics = null;
   if (exercise.rep_accuracy) {
-    stepRepExerciseStable(exercise, angle, session, hud);
+    metrics = stepRepExerciseStable(exercise, angle, session, hud);
   } else {
     stepRepExerciseLegacy(exercise, angle, session, hud);
   }
 
-  const { feedback, color } = provideExerciseFeedback(exercise, angle, session, getJoint);
+  const { feedback, color } = checkGenericForm(exercise, angle, session, getJoint);
 
   return {
     reps: session.count,
     feedback: feedback,
-    color: color
+    color: color,
+    speed: metrics ? metrics.speed : null,
+    rating: metrics ? metrics.rating : null
   };
 }
 

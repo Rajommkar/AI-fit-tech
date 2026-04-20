@@ -30,6 +30,12 @@ const repSession = {
   flexedStableFrames: 0,
   extendedStableFrames: 0,
   lastRepTimeMs: 0,
+  
+  // For Speed + Score tracking
+  repStartTime: 0,
+  formScore: 100,
+  repFlags: { badPosture: false, incompleteRep: false },
+  repHistory: []
 };
 
 const sequenceSession = {
@@ -56,6 +62,11 @@ let activeExerciseTitleEl;
 /** @type {HTMLElement} */
 let activeExerciseHudEl;
 
+/** @type {HTMLElement} */
+let repSpeedHudEl;
+/** @type {HTMLElement} */
+let repRatingHudEl;
+
 /** @type {HTMLElement | null} */
 let repDebugOverlay = null;
 
@@ -77,6 +88,14 @@ function processMotionFromLandmarks(landmarks) {
     if (result && result.feedback) {
       coachingTextEl.innerText = result.feedback;
       coachingTextEl.style.color = result.color || "#ffffff";
+    }
+
+    if (result && result.rating) {
+      if (repRatingHudEl) repRatingHudEl.innerText = result.rating;
+    }
+    
+    if (result && result.speed) {
+      if (repSpeedHudEl) repSpeedHudEl.innerText = result.speed;
     }
     if (repDebugOverlay) {
       const snap = getRepDebugSnapshot(currentExercise, getJoint, repSession);
@@ -143,6 +162,8 @@ function startExercise(exerciseId) {
   }
   coachingTextEl.innerText = `Switched to ${exercise.name}. Ready?`;
   coachingTextEl.style.color = "#ffffff";
+  if (repSpeedHudEl) repSpeedHudEl.innerText = "—";
+  if (repRatingHudEl) repRatingHudEl.innerText = "—";
 
   // Update button active states
   if (exerciseButtonsContainerEl) {
@@ -230,6 +251,8 @@ function cacheDomReferences() {
   exerciseButtonsContainerEl = document.getElementById("exercise_buttons");
   activeExerciseTitleEl = document.getElementById("active_exercise_title");
   activeExerciseHudEl = document.getElementById("active_exercise_hud");
+  repSpeedHudEl = document.getElementById("rep_speed_hud");
+  repRatingHudEl = document.getElementById("rep_rating_hud");
 }
 
 /**
