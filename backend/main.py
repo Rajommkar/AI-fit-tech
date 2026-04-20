@@ -21,8 +21,8 @@ async def root():
 @app.get("/exercises")
 async def get_exercises():
     try:
-        # Assuming exercises.json is in the common directory relative to backend
-        file_path = os.path.join(os.path.dirname(__file__), "..", "common", "exercises.json")
+        # Accessing exercises.json inside the local backend/common directory
+        file_path = os.path.join(os.path.dirname(__file__), "common", "exercises.json")
         with open(file_path, "r") as f:
             data = json.load(f)
             return data["exercises"]
