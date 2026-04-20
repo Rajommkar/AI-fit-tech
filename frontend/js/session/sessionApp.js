@@ -34,8 +34,12 @@ const repSession = {
   // For Speed + Score tracking
   repStartTime: 0,
   formScore: 100,
-  repFlags: { badPosture: false, incompleteRep: false },
-  repHistory: []
+  repFlags: { badPosture: false, incompleteRep: false, unstable: false },
+  repHistory: [],
+  
+  // Session Performance Tracking
+  totalScore: 0,
+  repCounted: 0
 };
 
 const sequenceSession = {

@@ -29,7 +29,13 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "track_spine": true,
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go lower in squat"
       }
     },
     {
@@ -61,7 +67,13 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "track_spine": true,
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go lower"
       }
     },
     {
@@ -93,7 +105,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -126,7 +143,13 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "track_spine": true,
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -177,7 +200,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -202,7 +230,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -234,7 +267,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -259,7 +297,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -291,7 +334,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -316,7 +364,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -341,7 +394,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -392,7 +450,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -417,7 +480,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -442,7 +510,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -467,7 +540,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -492,7 +570,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -517,7 +600,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -542,7 +630,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -567,7 +660,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -593,7 +691,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -618,7 +721,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -643,7 +751,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -668,7 +781,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -693,7 +811,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -719,7 +842,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -744,7 +872,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -769,7 +902,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -795,7 +933,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -821,7 +964,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -846,7 +994,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -871,7 +1024,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -896,7 +1054,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -986,7 +1149,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1011,7 +1179,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1036,7 +1209,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1072,7 +1250,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1098,7 +1281,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1123,7 +1311,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1148,7 +1341,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1173,7 +1371,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1199,7 +1402,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1225,7 +1433,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1250,7 +1463,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1275,7 +1493,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1301,7 +1524,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1327,7 +1555,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1352,7 +1585,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1377,7 +1615,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1402,7 +1645,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1427,7 +1675,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1452,7 +1705,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1489,7 +1747,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1514,7 +1777,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1540,7 +1808,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1565,7 +1838,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1603,7 +1881,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1628,7 +1911,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1653,7 +1941,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1691,7 +1984,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1739,7 +2037,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1776,7 +2079,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1802,7 +2110,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1827,7 +2140,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1853,7 +2171,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1878,7 +2201,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1904,7 +2232,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1930,7 +2263,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1955,7 +2293,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -1980,7 +2323,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -2006,7 +2354,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -2032,7 +2385,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -2057,7 +2415,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -2083,7 +2446,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -2120,7 +2488,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -2155,7 +2528,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -2180,7 +2558,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -2216,7 +2599,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {
@@ -2241,7 +2629,12 @@
       },
       "scoring": {
         "min_time": 800,
-        "max_time": 3000
+        "max_time": 3000,
+        "unstable_time": 400
+      },
+      "form_feedback": {
+        "badPosture": "Keep your back straight",
+        "incompleteRep": "Go deeper"
       }
     },
     {

@@ -12,28 +12,42 @@ function checkGenericForm(exercise, angle, session, getJoint) {
   let feedback = "Good form";
   let color = "#00ff00";
 
-  // Check bad posture (generic core tracking if available)
-  const shoulder = getJoint("left_shoulder");
-  const hip = getJoint("left_hip");
-  const ankle = getJoint("left_ankle");
-  if (shoulder && hip && ankle) {
-    const coreAngle = jointAngleDegrees(shoulder, hip, ankle);
-    // Any exercise tracking the spine
-    if (coreAngle < 155) {
-      if (session.repFlags) session.repFlags.badPosture = true;
-      feedback = "Keep back straight";
-      color = "#ffff00";
+  let badPostureDetected = false;
+  let incompleteRepDetected = false;
+
+  // Check bad posture (conditionally tracking spine)
+  if (exercise.track_spine) {
+    const shoulder = getJoint("left_shoulder");
+    const hip = getJoint("left_hip");
+    const ankle = getJoint("left_ankle");
+    if (shoulder && hip && ankle) {
+      const coreAngle = jointAngleDegrees(shoulder, hip, ankle);
+      if (coreAngle < 155) {
+        if (session.repFlags) session.repFlags.badPosture = true;
+        badPostureDetected = true;
+      }
     }
   }
 
   // Check incomplete rep (generic max flex targeting)
   if (phase === "extended" && angle > flexMax && angle < flexMax + 60) {
       if (session.repFlags) session.repFlags.incompleteRep = true;
-      feedback = "Go deeper";
+      incompleteRepDetected = true;
+  }
+
+  // Fallback to overrides via priority conflict fix
+  if (badPostureDetected) {
+      feedback = exercise.form_feedback?.badPosture || "Keep back straight";
+      color = "#ffff00";
+  } else if (incompleteRepDetected) {
+      feedback = exercise.form_feedback?.incompleteRep || "Go deeper";
       color = "#ff4444";
-  } else if (phase === "extended" && feedback === "Good form") {
+  } else if (phase === "extended") {
       feedback = "Ready.";
       color = "#ffffff";
+  } else {
+      feedback = "Good form";
+      color = "#00ff00";
   }
 
   return { feedback, color };
@@ -115,13 +129,19 @@ function stepRepExerciseStable(exercise, angle, session, hud) {
 
       const min_time = exercise.scoring?.min_time || 800;
       const max_time = exercise.scoring?.max_time || 3000;
+      const unstable_time = exercise.scoring?.unstable_time || 400;
       
       speedFeedback = "Good Speed";
       if (duration > 0 && duration < min_time) speedFeedback = "Too Fast";
       else if (duration > max_time) speedFeedback = "Too Slow";
 
+      if (duration > 0 && duration < unstable_time) {
+        if (session.repFlags) session.repFlags.unstable = true;
+      }
+
       if (session.repFlags?.badPosture) session.formScore -= 30;
       if (session.repFlags?.incompleteRep) session.formScore -= 40;
+      if (session.repFlags?.unstable) session.formScore -= 20;
 
       rating = "Good Rep";
       if (session.formScore > 80 && speedFeedback === "Good Speed") rating = "Perfect Rep";
@@ -135,11 +155,15 @@ function stepRepExerciseStable(exercise, angle, session, hud) {
           speed: speedFeedback
         });
       }
+      
+      session.totalScore = (session.totalScore || 0) + session.formScore;
+      session.repCounted = (session.repCounted || 0) + 1;
 
       session.formScore = 100;
       if (session.repFlags) {
         session.repFlags.badPosture = false;
         session.repFlags.incompleteRep = false;
+        session.repFlags.unstable = false;
       }
     }
     
@@ -147,7 +171,7 @@ function stepRepExerciseStable(exercise, angle, session, hud) {
     session.flexedStableFrames = 0;
     session.extendedStableFrames = 0;
     
-    return speedFeedback ? { speed: speedFeedback, rating } : null;
+    return speedFeedback ? { speed: speedFeedback, rating, overrideFeedback: "Good rep!" } : null;
   }
   return null;
 }
@@ -186,8 +210,8 @@ export function stepRepExercise(exercise, getJoint, session, hud) {
 
   return {
     reps: session.count,
-    feedback: feedback,
-    color: color,
+    feedback: metrics && metrics.overrideFeedback ? metrics.overrideFeedback : feedback,
+    color: metrics && metrics.overrideFeedback ? "#00ff00" : color,
     speed: metrics ? metrics.speed : null,
     rating: metrics ? metrics.rating : null
   };
