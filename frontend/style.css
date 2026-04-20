@@ -612,7 +612,7 @@ ul {
   background: var(--color-bg-base);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 24px;
-  padding: 2rem;
+  padding: 3rem;
   width: 100%;
   max-width: 900px;
   max-height: 90vh;
@@ -662,8 +662,8 @@ ul {
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .dash-card {
@@ -671,6 +671,13 @@ ul {
   border-radius: 16px;
   padding: 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.dash-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .dash-card h3 {
@@ -682,13 +689,17 @@ ul {
 .stat-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
-  font-size: 1.1rem;
+  margin-bottom: 0.8rem;
+  font-size: 1.15rem;
+  align-items: center;
   color: var(--color-text-muted);
 }
 
 .stat-row strong {
   color: #fff;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
 .highlight-box {
@@ -715,6 +726,13 @@ ul {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.exercise-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  border-color: var(--color-neon);
 }
 
 .exercise-card h4 {
@@ -741,6 +759,13 @@ ul {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: all 0.3s ease;
+}
+
+.history-card:hover {
+  transform: translateX(4px);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 .history-card span {
   display: flex;
