@@ -9,6 +9,7 @@ import {
 import { createJointGetter } from "./landmarks.js";
 import { getRepDebugSnapshot, stepRepExercise } from "./repExercise.js";
 import { stepSequenceExercise } from "./sequenceExercise.js";
+import { generateCoachAdvice } from "./coachEngine.js";
 
 /** @type {import('@mediapipe/tasks-vision').PoseLandmarker | undefined} */
 let poseLandmarker;
@@ -408,6 +409,20 @@ function endWorkoutSession() {
           <p><span>Needs Work</span> <strong>${stat.bad}</strong></p>
         </div>
       `;
+    });
+  }
+
+  // 8. Generate & Render AI Coach Advice
+  const savedProfile = JSON.parse(localStorage.getItem("userProfile")) || null;
+  const coach = generateCoachAdvice(savedProfile, sessions, exerciseStats);
+  
+  const coachAdviceEl = document.getElementById("coach-advice");
+  if (coachAdviceEl) {
+    coachAdviceEl.innerHTML = "";
+    coach.advice.forEach(item => {
+      const li = document.createElement("li");
+      li.innerHTML = item;
+      coachAdviceEl.appendChild(li);
     });
   }
 
