@@ -495,28 +495,62 @@ function openProfileDashboard() {
 
     // 3. Best Performance
     const bestSession = sessions.reduce((best, curr) => (curr.overallScore > best.overallScore ? curr : best), sessions[0]);
-    document.getElementById("prof_best_ever_score").innerText = `${Math.round(bestSession.overallScore)}/100`;
+    const bestDate = new Date(bestSession.date).toLocaleDateString([], { month: 'short', day: 'numeric' });
+    document.getElementById("prof_best_ever_score").innerText = `${Math.round(bestSession.overallScore)} (${bestDate})`;
 
-    // 4. Trend computation
+    // 4. Trend computation (4-tier)
     let trendStr = "Neutral ➖";
-    let coachMsg = "Keep pushing, consistency is key.";
+    let coachMsg = "Great start on your fitness journey!";
+    let emojiTrend = "⚖️";
     
     if (sessions.length >= 2) {
       const last = sessions[sessions.length - 1];
       const prev = sessions[sessions.length - 2];
-      if (last.overallScore > prev.overallScore) {
-        trendStr = "Improving 📈";
+      const diff = last.overallScore - prev.overallScore;
+      
+      if (diff > 5) {
+        trendStr = "Strong improvement 🚀";
+        coachMsg = "You are crushing it!";
+        emojiTrend = "🚀";
+      } else if (diff > 0) {
+        trendStr = "Slight improvement 📈";
         coachMsg = "You're getting stronger!";
-      } else if (last.overallScore < prev.overallScore) {
-        trendStr = "Needs improvement 📉";
+        emojiTrend = "📈";
+      } else if (diff > -5) {
+        trendStr = "Stable ⚖️";
+        coachMsg = "Keep pushing, consistency is key.";
+        emojiTrend = "⚖️";
+      } else {
+        trendStr = "Needs attention 📉";
         coachMsg = "Focus on consistency and form.";
+        emojiTrend = "📉";
       }
-    } else {
-      coachMsg = "Great start on your fitness journey!";
     }
+    
+    // Inject Profile specific insight
+    const profileGoal = savedProfile ? savedProfile.goal : "muscle_gain";
+    if (profileGoal === "muscle_gain") coachMsg += " Focus on progressive overload.";
+    if (profileGoal === "fat_loss") coachMsg += " Keep intensity high!";
+    if (profileGoal === "endurance") coachMsg += " Pace your breathing.";
 
     document.getElementById("prof_coach_insight").innerText = coachMsg;
-    document.getElementById("prof_coach_insight").style.color = trendStr.includes("Improving") ? "#00ff00" : trendStr.includes("Needs") ? "#ff4444" : "#aaa";
+    document.getElementById("prof_coach_insight").style.color = trendStr.includes("Strong") || trendStr.includes("Slight") ? "#00ff00" : trendStr.includes("attention") ? "#ff4444" : "#ffff00";
+
+    // 5. Streak system compute
+    let streak = 1;
+    for (let i = sessions.length - 1; i > 0; i--) {
+      const d1 = new Date(sessions[i].date).setHours(0,0,0,0);
+      const d0 = new Date(sessions[i-1].date).setHours(0,0,0,0);
+      const diffDays = (d1 - d0) / (1000 * 60 * 60 * 24);
+      if (diffDays <= 1) {
+        if (diffDays === 1) streak++;
+        // If 0 (same day), implies multiple sessions today, streak stays intact but doesn't add a day
+      } else {
+        break;
+      }
+    }
+    const streakElement = document.getElementById("prof_streak_count");
+    if (streakElement) streakElement.innerText = `${streak} Day${streak > 1 ? 's' : ''}`;
 
     // 5. Timeline history mapping
     const historyFeed = document.getElementById("prof_history_feed");
@@ -525,28 +559,51 @@ function openProfileDashboard() {
     // Sort reverse chronological
     const reversedSessions = [...sessions].reverse();
     
-    reversedSessions.forEach(s => {
+    reversedSessions.forEach((s, idx) => {
       let reps = 0;
+      let exTrendsHtml = "";
+
       if (s.stats) {
-         Object.values(s.stats).forEach(st => reps += st.totalReps);
+         Object.entries(s.stats).forEach(([ex, st]) => {
+           reps += st.totalReps;
+           
+           // Extract exercise-level diff if there is a previous valid session
+           let diffText = "";
+           if (idx < reversedSessions.length - 1) {
+             const historicalPrev = reversedSessions[idx + 1];
+             if (historicalPrev.stats && historicalPrev.stats[ex]) {
+               const diff = st.avgForm - historicalPrev.stats[ex].avgForm;
+               if (diff > 2) diffText = `<span style="color:#00ff00; font-size:0.7rem;">+${Math.round(diff)}&#8593;</span>`;
+               else if (diff < -2) diffText = `<span style="color:#ff4444; font-size:0.7rem;">${Math.round(diff)}&#8595;</span>`;
+             }
+           }
+           exTrendsHtml += `<div style="font-size: 0.8rem; color: #888;">${ex}: ${Math.round(st.avgForm)}% ${diffText}</div>`;
+         });
       }
       
       const sessionDate = new Date(s.date).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const scoreInt = Math.round(s.overallScore || 0);
+      const scoreColorDot = scoreInt > 85 ? "🟢" : scoreInt > 65 ? "🟡" : "🔴";
       
       historyFeed.innerHTML += `
-        <div class="history-card">
-          <span>
-            <small style="color: #888;">Date</small>
-            <strong>${sessionDate}</strong>
-          </span>
-          <span>
-            <small style="color: #888;">Score</small>
-            <strong>${Math.round(s.overallScore || 0)}</strong>
-          </span>
-          <span>
-            <small style="color: #888;">Reps</small>
-            <strong>${reps}</strong>
-          </span>
+        <div class="history-card" style="flex-wrap: wrap;">
+          <div style="display: flex; width: 100%; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span>
+              <small style="color: #888;">Date</small>
+              <strong>${sessionDate}</strong>
+            </span>
+            <span>
+              <small style="color: #888;">Score</small>
+              <strong>${scoreColorDot} ${scoreInt}</strong>
+            </span>
+            <span>
+              <small style="color: #888;">Reps</small>
+              <strong>${reps}</strong>
+            </span>
+          </div>
+          <div style="width: 100%;">
+            ${exTrendsHtml}
+          </div>
         </div>
       `;
     });
