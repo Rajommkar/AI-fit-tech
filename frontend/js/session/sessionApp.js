@@ -69,11 +69,15 @@ function processMotionFromLandmarks(landmarks) {
   const type = currentExercise.type;
   if (type === "rep") {
     const getJoint = createJointGetter(landmarks);
-    stepRepExercise(currentExercise, getJoint, repSession, {
+    const result = stepRepExercise(currentExercise, getJoint, repSession, {
       repCountEl,
-      consistencyMeterEl,
-      coachingTextEl,
+      consistencyMeterEl
     });
+
+    if (result && result.feedback) {
+      coachingTextEl.innerText = result.feedback;
+      coachingTextEl.style.color = result.color || "#ffffff";
+    }
     if (repDebugOverlay) {
       const snap = getRepDebugSnapshot(currentExercise, getJoint, repSession);
       const angleStr =
@@ -138,6 +142,7 @@ function startExercise(exerciseId) {
     activeExerciseHudEl.innerText = exercise.name;
   }
   coachingTextEl.innerText = `Switched to ${exercise.name}. Ready?`;
+  coachingTextEl.style.color = "#ffffff";
 
   // Update button active states
   if (exerciseButtonsContainerEl) {

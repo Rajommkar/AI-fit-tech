@@ -2,37 +2,81 @@ import { jointAngleDegrees, evaluateAngleCondition } from "./geometry.js";
 import { updateConsistencyMeter } from "./consistency.js";
 
 /**
- * Provide simple rule-based feedback to the UI.
+ * Evaluate geometry to provide real-time form correction.
+ * Returns a dictionary object containing feedback and color.
  */
-function provideExerciseFeedback(id, angle, session, hud) {
-  if (!hud.coachingTextEl) return;
+function provideExerciseFeedback(exercise, angle, session, getJoint) {
+  const id = exercise.id;
   const phase = session.repPhase || session.currentState;
+  const flexMax = exercise.rep_accuracy?.flexed_max_angle || 90;
+  
+  let feedback = "";
+  let color = "#00ff00"; // Default Green
 
   if (id === "pushup") {
-    if (phase === "extended") {
-       hud.coachingTextEl.innerText = angle < 120 ? "Keep back straight." : "Ready. Keep back straight.";
+    const s = getJoint("left_shoulder");
+    const h = getJoint("left_hip");
+    const a = getJoint("left_ankle");
+    let backAngle = 180;
+    if (s && h && a) backAngle = jointAngleDegrees(s, h, a);
+
+    if (backAngle < 160) {
+      feedback = "Keep back straight";
+      color = "#ffff00"; // Yellow Warning
+    } else if (phase === "extended" && angle > flexMax && angle < 140) {
+      feedback = "Go lower";
+      color = "#ff4444"; // Red Danger
+    } else if (phase === "extended") {
+      feedback = "Ready. Keep back straight.";
+      color = "#ffffff";
     } else {
-       hud.coachingTextEl.innerText = "Good depth! Push up!";
+      feedback = "Good depth! Push up!";
+      color = "#00ff00"; // Green Good
     }
   } else if (id === "squat") {
-    if (phase === "extended") {
-       hud.coachingTextEl.innerText = angle < 140 ? "Go lower." : "Ready. Keep chest up.";
+    if (phase === "extended" && angle > flexMax && angle < 150) {
+      feedback = "Go deeper";
+      color = "#ff4444";
+    } else if (phase === "extended") {
+      feedback = "Ready. Keep chest up.";
+      color = "#ffffff";
     } else {
-       hud.coachingTextEl.innerText = "Great depth! Drive up!";
+      feedback = "Great depth! Drive up!";
+      color = "#00ff00";
     }
   } else if (id === "lunge") {
-    if (phase === "extended") {
-       hud.coachingTextEl.innerText = angle < 140 ? "Step deeper." : "Ready. Core tight.";
+    if (phase === "extended" && angle > flexMax && angle < 150) {
+      feedback = "Step deeper";
+      color = "#ff4444";
+    } else if (phase === "extended") {
+      feedback = "Ready. Core tight.";
+      color = "#ffffff";
     } else {
-       hud.coachingTextEl.innerText = "Good lunge! Drive back up.";
+      feedback = "Good lunge! Drive back up.";
+      color = "#00ff00";
     }
   } else if (id === "bicep_curl") {
-    if (phase === "extended") {
-       hud.coachingTextEl.innerText = angle < 100 ? "Curl all the way up!" : "Full extension.";
+    if (phase === "extended" && angle < 40) {
+      feedback = "Don't swing your arm";
+      color = "#ffff00";
+    } else if (phase === "extended" && angle > 100 && angle < 150) {
+      feedback = "Fully extend your arm";
+      color = "#ffff00";
+    } else if (phase === "extended") {
+      feedback = "Ready. Control movement.";
+      color = "#ffffff";
     } else {
-       hud.coachingTextEl.innerText = "Control movement.";
+      feedback = "Control movement";
+      color = "#00ff00";
     }
   }
+
+  if (!feedback) {
+    feedback = "Good form";
+    color = "#00ff00";
+  }
+
+  return { feedback, color };
 }
 
 /**
@@ -129,7 +173,7 @@ function stepRepExerciseStable(exercise, angle, session, hud) {
  */
 export function stepRepExercise(exercise, getJoint, session, hud) {
   const joints = exercise.joints.map((j) => getJoint(j));
-  if (!joints.every(Boolean)) return;
+  if (!joints.every(Boolean)) return { reps: session.count, feedback: "No pose detected", color: "#ffffff" };
 
   const angle = jointAngleDegrees(joints[0], joints[1], joints[2]);
 
@@ -139,7 +183,13 @@ export function stepRepExercise(exercise, getJoint, session, hud) {
     stepRepExerciseLegacy(exercise, angle, session, hud);
   }
 
-  provideExerciseFeedback(exercise.id, angle, session, hud);
+  const { feedback, color } = provideExerciseFeedback(exercise, angle, session, getJoint);
+
+  return {
+    reps: session.count,
+    feedback: feedback,
+    color: color
+  };
 }
 
 /**
