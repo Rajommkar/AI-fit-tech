@@ -20,6 +20,8 @@ let exerciseData = [];
 /** @type {object | null} */
 let currentExercise = null;
 
+let globalSessionStartTime = Date.now();
+
 const repSession = {
   currentState: "",
   count: 0,
@@ -312,9 +314,25 @@ function endWorkoutSession() {
   });
 
   const overallScore = totalReps > 0 ? (totalScore / totalReps) : 0;
+  const sessionScore = Math.round(overallScore);
   
   // Persist into memory
   let sessions = JSON.parse(localStorage.getItem("sessions")) || [];
+  
+  // 1. Trend Calculation
+  let trendStr = "—";
+  if (sessions.length > 0) {
+    const lastSession = sessions[sessions.length - 1]; // Wait, if we push *after* getting, the last is index - 1
+    const improvement = sessionScore - Math.round(lastSession.overallScore);
+    if (improvement > 0) {
+      trendStr = `<span style="color: #00ff00;">+${improvement}% improvement</span>`;
+    } else if (improvement < 0) {
+      trendStr = `<span style="color: #ff4444;">${improvement}% dropped</span>`;
+    } else {
+      trendStr = "No Change";
+    }
+  }
+
   sessions.push({
     date: new Date(),
     stats: exerciseStats,
@@ -322,26 +340,50 @@ function endWorkoutSession() {
   });
   localStorage.setItem("sessions", JSON.stringify(sessions));
 
-  // Render UI
-  let message = "Focus on form and control";
+  // 7. Session Duration Computation
+  const durationMs = Date.now() - globalSessionStartTime;
+  const mins = Math.floor(durationMs / 60000);
+  const secs = Math.floor((durationMs % 60000) / 1000);
+
+  // Render UI with Color Coding and Insight
+  let insight = "Focus on form";
+  let messageColor = "#ff4444"; // Red for poor
+  
   if (overallScore > 85) {
-    message = "Excellent performance!";
+    insight = "Excellent session!";
+    messageColor = "#00ff00"; // Green for good
   } else if (overallScore > 65) {
-    message = "Good, keep improving";
+    insight = "Good, but improve consistency";
+    messageColor = "#ffff00"; // Yellow for medium
   }
 
-  document.getElementById("perf_message_box").innerText = totalReps > 0 ? message : "No reps recorded.";
+  const msgBox = document.getElementById("perf_message_box");
+  if (msgBox) {
+    msgBox.innerText = totalReps > 0 ? insight : "No reps recorded.";
+    msgBox.style.color = messageColor;
+    msgBox.style.borderColor = messageColor;
+    msgBox.style.background = `rgba(${messageColor === "#00ff00" ? '0,255,0' : messageColor === '#ffff00' ? '255,255,0' : '255,68,68'}, 0.1)`;
+  }
+  
+  document.getElementById("dash_session_duration").innerText = `${mins}m ${secs}s`;
+  document.getElementById("dash_session_trend").innerHTML = trendStr;
+  
   document.getElementById("dash_total_reps").innerText = totalReps;
   document.getElementById("dash_total_exercises").innerText = Object.keys(exerciseStats).length;
-  document.getElementById("dash_overall_score").innerText = `${Math.round(overallScore)}%`;
+  document.getElementById("dash_overall_score").innerText = `${sessionScore}/100`;
 
-  document.getElementById("dash_best_ex").innerText = bestExercise ? bestExercise.name : "—";
-  document.getElementById("dash_worst_ex").innerText = worstExercise ? worstExercise.name : "—";
+  // 2. Ranking Format overrides
+  document.getElementById("dash_best_ex").innerText = bestExercise ? `${bestExercise.name} (${Math.round(bestExercise.avgForm)}%)` : "—";
+  document.getElementById("dash_worst_ex").innerText = worstExercise ? `${worstExercise.name} (${Math.round(worstExercise.avgForm)}%)` : "—";
 
   const grid = document.getElementById("per_exercise_grid");
   if (grid) {
     grid.innerHTML = "";
-    Object.entries(exerciseStats).forEach(([ex, stat]) => {
+    
+    // 6. Sort Exercise array natively
+    const sortedStats = Object.entries(exerciseStats).sort((a, b) => b[1].avgForm - a[1].avgForm);
+    
+    sortedStats.forEach(([ex, stat]) => {
       grid.innerHTML += `
         <div class="exercise-card">
           <h4>${ex}</h4>
@@ -363,6 +405,7 @@ function endWorkoutSession() {
  * Application entry: load exercises, MediaPipe, webcam loop.
  */
 export async function startSessionApp() {
+  globalSessionStartTime = Date.now();
   cacheDomReferences();
   setupRepDebugOverlay();
 
