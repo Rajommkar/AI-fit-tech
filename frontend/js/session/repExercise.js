@@ -149,6 +149,8 @@ function stepRepExerciseStable(exercise, angle, session, hud) {
 
       if (session.repHistory) {
         session.repHistory.push({
+          exerciseId: exercise.id,
+          exerciseName: exercise.name,
           duration,
           formScore: session.formScore,
           rating,

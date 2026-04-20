@@ -257,6 +257,106 @@ function cacheDomReferences() {
   activeExerciseHudEl = document.getElementById("active_exercise_hud");
   repSpeedHudEl = document.getElementById("rep_speed_hud");
   repRatingHudEl = document.getElementById("rep_rating_hud");
+
+  document.getElementById("end_session_btn")?.addEventListener("click", endWorkoutSession);
+  document.getElementById("close_dashboard_btn")?.addEventListener("click", () => {
+    document.getElementById("dashboard_overlay")?.classList.add("hidden");
+  });
+}
+
+/**
+ * Stop tracking and generate analytics dashboard payload
+ */
+function endWorkoutSession() {
+  const history = repSession.repHistory || [];
+  const exerciseStats = {};
+
+  history.forEach(rep => {
+    const ex = rep.exerciseName;
+    if (!exerciseStats[ex]) {
+      exerciseStats[ex] = {
+        totalReps: 0,
+        totalScore: 0,
+        totalDuration: 0,
+        perfect: 0,
+        bad: 0
+      };
+    }
+    const stat = exerciseStats[ex];
+    stat.totalReps++;
+    stat.totalScore += rep.formScore;
+    stat.totalDuration += rep.duration;
+
+    if (rep.rating === "Perfect Rep") stat.perfect++;
+    if (rep.rating === "Bad Rep") stat.bad++;
+  });
+
+  let totalReps = 0;
+  let totalScore = 0;
+  let bestExercise = null;
+  let worstExercise = null;
+
+  Object.entries(exerciseStats).forEach(([ex, stat]) => {
+    stat.avgForm = stat.totalScore / stat.totalReps;
+    stat.avgSpeed = stat.totalDuration / stat.totalReps;
+    
+    totalReps += stat.totalReps;
+    totalScore += stat.totalScore;
+
+    if (!bestExercise || stat.avgForm > bestExercise.avgForm) {
+      bestExercise = { name: ex, ...stat };
+    }
+    if (!worstExercise || stat.avgForm < worstExercise.avgForm) {
+      worstExercise = { name: ex, ...stat };
+    }
+  });
+
+  const overallScore = totalReps > 0 ? (totalScore / totalReps) : 0;
+  
+  // Persist into memory
+  let sessions = JSON.parse(localStorage.getItem("sessions")) || [];
+  sessions.push({
+    date: new Date(),
+    stats: exerciseStats,
+    overallScore
+  });
+  localStorage.setItem("sessions", JSON.stringify(sessions));
+
+  // Render UI
+  let message = "Focus on form and control";
+  if (overallScore > 85) {
+    message = "Excellent performance!";
+  } else if (overallScore > 65) {
+    message = "Good, keep improving";
+  }
+
+  document.getElementById("perf_message_box").innerText = totalReps > 0 ? message : "No reps recorded.";
+  document.getElementById("dash_total_reps").innerText = totalReps;
+  document.getElementById("dash_total_exercises").innerText = Object.keys(exerciseStats).length;
+  document.getElementById("dash_overall_score").innerText = `${Math.round(overallScore)}%`;
+
+  document.getElementById("dash_best_ex").innerText = bestExercise ? bestExercise.name : "—";
+  document.getElementById("dash_worst_ex").innerText = worstExercise ? worstExercise.name : "—";
+
+  const grid = document.getElementById("per_exercise_grid");
+  if (grid) {
+    grid.innerHTML = "";
+    Object.entries(exerciseStats).forEach(([ex, stat]) => {
+      grid.innerHTML += `
+        <div class="exercise-card">
+          <h4>${ex}</h4>
+          <p><span>Reps</span> <strong>${stat.totalReps}</strong></p>
+          <p><span>Avg Form</span> <strong>${Math.round(stat.avgForm)}%</strong></p>
+          <p><span>Avg Speed</span> <strong>${Math.round(stat.avgSpeed)}ms</strong></p>
+          <p><span>Perfect</span> <strong>${stat.perfect}</strong></p>
+          <p><span>Needs Work</span> <strong>${stat.bad}</strong></p>
+        </div>
+      `;
+    });
+  }
+
+  // Finally show overlay
+  document.getElementById("dashboard_overlay")?.classList.remove("hidden");
 }
 
 /**
