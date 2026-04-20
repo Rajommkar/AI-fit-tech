@@ -264,6 +264,20 @@ function cacheDomReferences() {
   document.getElementById("close_dashboard_btn")?.addEventListener("click", () => {
     document.getElementById("dashboard_overlay")?.classList.add("hidden");
   });
+
+  const navProfile = document.getElementById("nav_profile");
+  if (navProfile) {
+    navProfile.addEventListener("click", (e) => {
+      e.preventDefault();
+      openProfileDashboard();
+    });
+  }
+
+  document.getElementById("close_profile_btn")?.addEventListener("click", () => {
+    document.getElementById("profile_overlay")?.classList.add("hidden");
+  });
+
+  document.getElementById("save_profile_btn")?.addEventListener("click", saveProfile);
 }
 
 /**
@@ -409,6 +423,11 @@ export async function startSessionApp() {
   cacheDomReferences();
   setupRepDebugOverlay();
 
+  if (!localStorage.getItem("userProfile")) {
+    const defaultProfile = { name: "User", age: 21, weight: 70, goal: "muscle_gain" };
+    localStorage.setItem("userProfile", JSON.stringify(defaultProfile));
+  }
+
   try {
     exerciseData = await fetchExerciseDefinitions();
     populateExerciseButtons();
@@ -418,4 +437,120 @@ export async function startSessionApp() {
 
   poseLandmarker = await createPoseLandmarker();
   enableWebcam();
+}
+
+/**
+ * Validates and triggers Profile save
+ */
+function saveProfile() {
+  const userProfile = {
+    name: document.getElementById("prof_name").value || "User",
+    age: parseInt(document.getElementById("prof_age").value) || 21,
+    weight: parseInt(document.getElementById("prof_weight").value) || 70,
+    goal: document.getElementById("prof_goal").value || "muscle_gain"
+  };
+  localStorage.setItem("userProfile", JSON.stringify(userProfile));
+  
+  const btn = document.getElementById("save_profile_btn");
+  if(btn) {
+    const orig = btn.innerText;
+    btn.innerText = "Saved!";
+    setTimeout(() => { btn.innerText = orig; }, 2000);
+  }
+}
+
+/**
+ * Hydrates profile DOM and computes massive 7-day + array reducers
+ */
+function openProfileDashboard() {
+  // 1. Inflate profile
+  const savedProfile = JSON.parse(localStorage.getItem("userProfile"));
+  if (savedProfile) {
+    document.getElementById("prof_name").value = savedProfile.name;
+    document.getElementById("prof_age").value = savedProfile.age;
+    document.getElementById("prof_weight").value = savedProfile.weight;
+    document.getElementById("prof_goal").value = savedProfile.goal;
+  }
+
+  const sessions = JSON.parse(localStorage.getItem("sessions")) || [];
+  
+  if (sessions.length > 0) {
+    // 2. Weekly computations
+    const last7Days = sessions.slice(-7);
+    let weeklyScoreSum = 0;
+    let weeklyRepsSum = 0;
+    last7Days.forEach(s => {
+      weeklyScoreSum += (s.overallScore || 0);
+      let repSum = 0;
+      if (s.stats) {
+         Object.values(s.stats).forEach(st => repSum += st.totalReps);
+      }
+      weeklyRepsSum += repSum;
+    });
+
+    const avgWeeklyScore = Math.round(weeklyScoreSum / last7Days.length);
+    document.getElementById("prof_weekly_sessions").innerText = last7Days.length;
+    document.getElementById("prof_weekly_reps").innerText = weeklyRepsSum;
+    document.getElementById("prof_weekly_score").innerText = `${avgWeeklyScore}/100`;
+
+    // 3. Best Performance
+    const bestSession = sessions.reduce((best, curr) => (curr.overallScore > best.overallScore ? curr : best), sessions[0]);
+    document.getElementById("prof_best_ever_score").innerText = `${Math.round(bestSession.overallScore)}/100`;
+
+    // 4. Trend computation
+    let trendStr = "Neutral ➖";
+    let coachMsg = "Keep pushing, consistency is key.";
+    
+    if (sessions.length >= 2) {
+      const last = sessions[sessions.length - 1];
+      const prev = sessions[sessions.length - 2];
+      if (last.overallScore > prev.overallScore) {
+        trendStr = "Improving 📈";
+        coachMsg = "You're getting stronger!";
+      } else if (last.overallScore < prev.overallScore) {
+        trendStr = "Needs improvement 📉";
+        coachMsg = "Focus on consistency and form.";
+      }
+    } else {
+      coachMsg = "Great start on your fitness journey!";
+    }
+
+    document.getElementById("prof_coach_insight").innerText = coachMsg;
+    document.getElementById("prof_coach_insight").style.color = trendStr.includes("Improving") ? "#00ff00" : trendStr.includes("Needs") ? "#ff4444" : "#aaa";
+
+    // 5. Timeline history mapping
+    const historyFeed = document.getElementById("prof_history_feed");
+    historyFeed.innerHTML = ""; // Clear
+    
+    // Sort reverse chronological
+    const reversedSessions = [...sessions].reverse();
+    
+    reversedSessions.forEach(s => {
+      let reps = 0;
+      if (s.stats) {
+         Object.values(s.stats).forEach(st => reps += st.totalReps);
+      }
+      
+      const sessionDate = new Date(s.date).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      
+      historyFeed.innerHTML += `
+        <div class="history-card">
+          <span>
+            <small style="color: #888;">Date</small>
+            <strong>${sessionDate}</strong>
+          </span>
+          <span>
+            <small style="color: #888;">Score</small>
+            <strong>${Math.round(s.overallScore || 0)}</strong>
+          </span>
+          <span>
+            <small style="color: #888;">Reps</small>
+            <strong>${reps}</strong>
+          </span>
+        </div>
+      `;
+    });
+  }
+
+  document.getElementById("profile_overlay")?.classList.remove("hidden");
 }

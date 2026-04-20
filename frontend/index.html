@@ -70,6 +70,7 @@
 
               <li class="nav__item"><a href="#programs" class="nav__link">Programs</a></li>
               <li class="nav__item"><a href="#tracker" class="nav__link">AI Coach</a></li>
+              <li class="nav__item"><a href="#" id="nav_profile" class="nav__link">Profile & History</a></li>
             </ul>
           </nav>
 
@@ -226,6 +227,75 @@
                   </div>
                 </div>
               </div>
+              </div>
+
+              <!-- PROFILE OVERLAY -->
+              <div id="profile_overlay" class="dashboard-overlay hidden">
+                <div class="dashboard-content" style="max-width: 1000px;">
+                  <div class="dashboard-header">
+                    <h2>Athlete Profile & History</h2>
+                    <button id="close_profile_btn" class="close-btn">&times;</button>
+                  </div>
+                  
+                  <div class="dashboard-grid" style="grid-template-columns: 1fr 2fr;">
+                    
+                    <!-- LEFT COLUMN: Profile info -->
+                    <div class="dash-card">
+                      <h3>User Profile</h3>
+                      <div class="profile-form">
+                        <div class="stat-row" style="flex-direction: column; align-items: flex-start; margin-bottom: 1rem;">
+                          <label style="font-size: 0.8rem; color: #aaa; margin-bottom: 0.2rem;">Athlete Name</label>
+                          <input type="text" id="prof_name" value="User" style="width: 100%; padding: 0.5rem; background: #222; border: 1px solid #444; color: white; border-radius: 4px;">
+                        </div>
+                        <div class="stat-row" style="flex-direction: column; align-items: flex-start; margin-bottom: 1rem;">
+                          <label style="font-size: 0.8rem; color: #aaa; margin-bottom: 0.2rem;">Age</label>
+                          <input type="number" id="prof_age" value="21" style="width: 100%; padding: 0.5rem; background: #222; border: 1px solid #444; color: white; border-radius: 4px;">
+                        </div>
+                        <div class="stat-row" style="flex-direction: column; align-items: flex-start; margin-bottom: 1rem;">
+                          <label style="font-size: 0.8rem; color: #aaa; margin-bottom: 0.2rem;">Weight (kg)</label>
+                          <input type="number" id="prof_weight" value="70" style="width: 100%; padding: 0.5rem; background: #222; border: 1px solid #444; color: white; border-radius: 4px;">
+                        </div>
+                        <div class="stat-row" style="flex-direction: column; align-items: flex-start; margin-bottom: 1rem;">
+                          <label style="font-size: 0.8rem; color: #aaa; margin-bottom: 0.2rem;">Primary Goal</label>
+                          <select id="prof_goal" style="width: 100%; padding: 0.5rem; background: #222; border: 1px solid #444; color: white; border-radius: 4px;">
+                            <option value="muscle_gain">Muscle Gain</option>
+                            <option value="fat_loss">Fat Loss</option>
+                            <option value="endurance">Endurance</option>
+                            <option value="maintenance">Maintenance</option>
+                          </select>
+                        </div>
+                        <button id="save_profile_btn" class="button button--neon" style="width: 100%; justify-content: center; padding: 0.5rem;">Save Profile</button>
+                      </div>
+
+                      <h3 style="margin-top: 2rem;">Weekly Summary</h3>
+                      <div class="stat-row"><span>Sessions:</span><strong id="prof_weekly_sessions">0</strong></div>
+                      <div class="stat-row"><span>Total Reps:</span><strong id="prof_weekly_reps">0</strong></div>
+                      <div class="stat-row"><span>Avg Score:</span><strong id="prof_weekly_score">0/100</strong></div>
+                      <h4 style="margin-top: 1rem; color: var(--color-neon);">Coach Insight:</h4>
+                      <p id="prof_coach_insight" style="font-style: italic; color: #aaa; font-size: 0.9rem;">No data yet.</p>
+                    </div>
+
+                    <!-- RIGHT COLUMN: History Timeline -->
+                    <div class="dash-card" style="display: flex; flex-direction: column; max-height: 70vh;">
+                      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin: 0;">Session History</h3>
+                        <div class="highlight-box best" style="margin: 0; background: rgba(255,215,0,0.1); padding: 0.5rem 1rem; border-radius: 8px;">
+                          <span class="emoji" style="font-size: 1rem;">🏆</span>
+                          <div>
+                            <small>Best Score</small>
+                            <strong id="prof_best_ever_score">—</strong>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div id="prof_history_feed" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; padding-right: 0.5rem;">
+                        <!-- Timeline cards injected here -->
+                        <div style="text-align: center; color: #666; margin-top: 2rem;">No session history found.</div>
+                      </div>
+                    </div>
+                    
+                  </div>
+                </div>
               </div>
             </div>
           </div>
