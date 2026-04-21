@@ -8,9 +8,6 @@ export function getExercisesApiBaseUrl() {
   return DEFAULT_API_BASE;
 }
 
-/**
- * @returns {Promise<object[]>}
- */
 export async function fetchExerciseDefinitions() {
   const base = getExercisesApiBaseUrl();
   const response = await fetch(`${base}/exercises`);

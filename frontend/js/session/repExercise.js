@@ -1,10 +1,6 @@
 import { jointAngleDegrees, evaluateAngleCondition } from "./geometry.js";
 import { updateConsistencyMeter } from "./consistency.js";
 
-/**
- * Evaluate geometry to provide real-time form correction.
- * Returns a dictionary object containing feedback and color.
- */
 function checkGenericForm(exercise, angle, session, getJoint) {
   const phase = session.repPhase || session.currentState;
   const flexMax = exercise.rep_accuracy?.flexed_max_angle || 90;
@@ -15,7 +11,6 @@ function checkGenericForm(exercise, angle, session, getJoint) {
   let badPostureDetected = false;
   let incompleteRepDetected = false;
 
-  // Check bad posture (conditionally tracking spine)
   if (exercise.track_spine) {
     const shoulder = getJoint("left_shoulder");
     const hip = getJoint("left_hip");
@@ -29,13 +24,11 @@ function checkGenericForm(exercise, angle, session, getJoint) {
     }
   }
 
-  // Check incomplete rep (generic max flex targeting)
   if (phase === "extended" && angle > flexMax && angle < flexMax + 60) {
       if (session.repFlags) session.repFlags.incompleteRep = true;
       incompleteRepDetected = true;
   }
 
-  // Fallback to overrides via priority conflict fix
   if (badPostureDetected) {
       feedback = exercise.form_feedback?.badPosture || "Keep back straight";
       color = "#ffff00";
@@ -53,9 +46,6 @@ function checkGenericForm(exercise, angle, session, getJoint) {
   return { feedback, color };
 }
 
-/**
- * Legacy JSON state machine (single-frame transition when condition is true).
- */
 function stepRepExerciseLegacy(exercise, angle, session, hud) {
   const stateConfig = exercise.states[session.currentState];
   const conditionMet = evaluateAngleCondition(stateConfig.condition, angle);
@@ -71,24 +61,11 @@ function stepRepExerciseLegacy(exercise, angle, session, hud) {
   session.currentState = stateConfig.next;
 }
 
-/**
- * Stable rep counting: hysteresis via separate flex/extend thresholds,
- * N consecutive frames in-bucket, optional cooldown between counted reps.
- * Full ROM: extended → flexed → extended = one rep (when count fires on return to extended).
- *
- * Expects `exercise.rep_accuracy`:
- * - flexed_max_angle — angle must stay below this to build "flexed" stability
- * - extended_min_angle — angle must stay above this for "extended" stability
- * - required_frames (optional, default 3)
- * - cooldown_ms (optional, default 500)
- * - min_rep_duration_ms (optional, default 800) — floor time between counted reps; uses max(cooldown_ms, this) so fast bounces cannot slip through a short cooldown alone
- * - start_phase (optional): "extended" | "flexed"
- */
 function stepRepExerciseStable(exercise, angle, session, hud) {
   const ra = exercise.rep_accuracy;
   const flexMax = ra.flexed_max_angle;
   const extMin = ra.extended_min_angle;
-  if (!(flexMax < extMin)) return;
+  if (!(flexMax < extMin)) return null;
 
   const requiredFrames = ra.required_frames ?? 3;
   const cooldownMs = ra.cooldown_ms ?? 500;
@@ -178,23 +155,6 @@ function stepRepExerciseStable(exercise, angle, session, hud) {
   return null;
 }
 
-/**
- * Rep counting for `type: "rep"`.
- * Uses `exercise.rep_accuracy` when present; otherwise the legacy `states` machine.
- *
- * @param {object} exercise
- * @param {(name: string) => import('@mediapipe/tasks-vision').NormalizedLandmark | undefined} getJoint
- * @param {{
- *   currentState: string,
- *   count: number,
- *   repAngles: number[],
- *   repPhase: string,
- *   flexedStableFrames: number,
- *   extendedStableFrames: number,
- *   lastRepTimeMs: number,
- * }} session
- * @param {{ repCountEl: HTMLElement, consistencyMeterEl: HTMLElement }} hud
- */
 export function stepRepExercise(exercise, getJoint, session, hud) {
   const joints = exercise.joints.map((j) => getJoint(j));
   if (!joints.every(Boolean)) return { reps: session.count, feedback: "No pose detected", color: "#ffffff" };
@@ -219,12 +179,6 @@ export function stepRepExercise(exercise, getJoint, session, hud) {
   };
 }
 
-/**
- * Live values for tuning JSON (`?repDebug=1` on the tracker page).
- * @param {object} exercise
- * @param {(name: string) => import('@mediapipe/tasks-vision').NormalizedLandmark | undefined} getJoint
- * @param {{ currentState: string, repPhase: string, flexedStableFrames: number, extendedStableFrames: number }} session
- */
 export function getRepDebugSnapshot(exercise, getJoint, session) {
   const joints = exercise.joints.map((j) => getJoint(j));
   if (!joints.every(Boolean)) {

@@ -1,12 +1,3 @@
-/**
- * Burpee-style sequence counting (`type: "sequence"` in exercises.json).
- * Mutates `session` and rep HUD (same thresholds as original).
- *
- * @param {object} exercise
- * @param {import('@mediapipe/tasks-vision').NormalizedLandmark[]} landmarks
- * @param {{ currentStageIndex: number, count: number }} session
- * @param {{ repCountEl: HTMLElement }} hud
- */
 export function stepSequenceExercise(exercise, landmarks, session, hud) {
   const headY = landmarks[0].y;
   const stageName = exercise.stages[session.currentStageIndex];

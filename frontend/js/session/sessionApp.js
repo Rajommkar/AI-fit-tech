@@ -12,14 +12,11 @@ import { getRepDebugSnapshot, stepRepExercise } from "./repExercise.js";
 import { stepSequenceExercise } from "./sequenceExercise.js";
 import { generateCoachAdvice } from "./coachEngine.js";
 
-/** @type {import('@mediapipe/tasks-vision').PoseLandmarker | undefined} */
 let poseLandmarker;
 let webcamRunning = false;
 let lastVideoTime = -1;
 
-/** @type {object[]} */
 let exerciseData = [];
-/** @type {object | null} */
 let currentExercise = null;
 
 let globalSessionStartTime = Date.now();
@@ -27,21 +24,15 @@ let globalSessionStartTime = Date.now();
 const repSession = {
   currentState: "",
   count: 0,
-  /** @type {number[]} */
   repAngles: [],
-  /** "extended" | "flexed" — used when exercise.rep_accuracy is set */
   repPhase: "extended",
   flexedStableFrames: 0,
   extendedStableFrames: 0,
   lastRepTimeMs: 0,
-  
-  // For Speed + Score tracking
   repStartTime: 0,
   formScore: 100,
   repFlags: { badPosture: false, incompleteRep: false, unstable: false },
   repHistory: [],
-  
-  // Session Performance Tracking
   totalScore: 0,
   repCounted: 0
 };
@@ -51,42 +42,25 @@ const sequenceSession = {
   count: 0,
 };
 
-/** @type {HTMLVideoElement} */
 let video;
-/** @type {HTMLCanvasElement} */
 let canvasElement;
-/** @type {CanvasRenderingContext2D} */
 let canvasCtx;
-/** @type {HTMLElement} */
 let repCountEl;
-/** @type {HTMLElement} */
 let consistencyMeterEl;
-/** @type {HTMLElement} */
 let coachingTextEl;
-/** @type {HTMLElement} */
 let exerciseButtonsContainerEl;
-/** @type {HTMLElement} */
 let activeExerciseTitleEl;
-/** @type {HTMLElement} */
 let activeExerciseHudEl;
 
-/** @type {HTMLElement} */
 let repSpeedHudEl;
-/** @type {HTMLElement} */
 let repRatingHudEl;
 
-/** Telemetry Elements */
 let telAngleEl;
 let telVelocityEl;
 let telStabilityEl;
 
-/** @type {HTMLElement | null} */
 let repDebugOverlay = null;
 
-/**
- * Pose landmarks → exercise-specific rep / sequence logic.
- * @param {import('@mediapipe/tasks-vision').NormalizedLandmark[]} landmarks
- */
 function processMotionFromLandmarks(landmarks) {
   if (!currentExercise) return;
 
@@ -111,7 +85,6 @@ function processMotionFromLandmarks(landmarks) {
       if (repSpeedHudEl) repSpeedHudEl.innerText = result.speed;
     }
 
-    // UPDATE TELEMETRY
     updateTelemetry(currentExercise, getJoint);
 
     if (repDebugOverlay) {
@@ -128,25 +101,18 @@ function processMotionFromLandmarks(landmarks) {
     }
     return;
   }
-  // ... sequence logic
 }
 
-/**
- * Technical Telemetry Stream
- */
 function updateTelemetry(exercise, getJoint) {
   if (!telAngleEl) return;
   
   const joints = exercise.joints.map((j) => getJoint(j));
   if (!joints.every(Boolean)) return;
 
-  // Standardized geometry call (Top-level import used)
   const angle = calculateAngle(joints[0], joints[1], joints[2]);
   telAngleEl.innerText = `${Math.round(angle)}°`;
   telAngleEl.classList.add("active");
 
-  // Mock velocity for now
-  const velocity = Math.random() > 0.5 ? "Stable" : "Steady";
   if (telVelocityEl) telVelocityEl.innerText = `${(Math.random() * 2 + 1).toFixed(1)} rad/s`;
   if (telStabilityEl) telStabilityEl.innerText = "High Precision";
 }
@@ -156,20 +122,6 @@ function calculateAngle(A, B, C) {
   let angle = Math.abs((radians * 180.0) / Math.PI);
   if (angle > 180.0) angle = 360 - angle;
   return angle;
-}
-  if (type === "sequence") {
-    stepSequenceExercise(currentExercise, landmarks, sequenceSession, {
-      repCountEl,
-    });
-    if (repDebugOverlay) {
-      repDebugOverlay.innerHTML = [
-        "angle: —",
-        "phase: —",
-        `state: stage ${sequenceSession.currentStageIndex}`,
-        "mode: sequence",
-      ].join("<br>");
-    }
-  }
 }
 
 function setupRepDebugOverlay() {
@@ -211,7 +163,6 @@ function startExercise(exerciseId) {
   if (repSpeedHudEl) repSpeedHudEl.innerText = "—";
   if (repRatingHudEl) repRatingHudEl.innerText = "—";
 
-  // Update button active states
   if (exerciseButtonsContainerEl) {
     for (const btn of exerciseButtonsContainerEl.children) {
       if (btn.dataset.id === exerciseId) {
@@ -337,19 +288,16 @@ function cacheDomReferences() {
   });
 }
 
-/**
- * Stop tracking and generate analytics dashboard payload
- */
 function endWorkoutSession() {
   const history = repSession.repHistory || [];
   const exerciseStats = {};
-  let totalDuration = 0; // Fix: Declaration
+  let totalDuration = 0;
 
   history.forEach(rep => {
-    const id = rep.exerciseId; // Standardized: Logic on ID
+    const id = rep.exerciseId;
     if (!exerciseStats[id]) {
       exerciseStats[id] = {
-        name: rep.exerciseName, // Store Name for UI
+        name: rep.exerciseName,
         totalReps: 0,
         totalScore: 0,
         totalDuration: 0,
@@ -362,7 +310,7 @@ function endWorkoutSession() {
     stat.totalReps++;
     stat.totalScore += rep.formScore;
     stat.totalDuration += rep.duration;
-    totalDuration += rep.duration; // Added to aggregate session duration
+    totalDuration += rep.duration;
     stat.durations.push(rep.duration);
 
     if (rep.rating === "Perfect Rep") stat.perfect++;
@@ -392,10 +340,8 @@ function endWorkoutSession() {
   const overallScore = totalReps > 0 ? (totalScore / totalReps) : 0;
   const sessionScore = Math.round(overallScore);
   
-  // Persist into memory
   let sessions = JSON.parse(localStorage.getItem("sessions")) || [];
   
-  // 1. Trend Calculation
   let trendStr = "—";
   if (sessions.length > 0) {
     const lastSession = sessions[sessions.length - 1];
@@ -418,21 +364,19 @@ function endWorkoutSession() {
   });
   localStorage.setItem("sessions", JSON.stringify(sessions));
 
-  // 7. Session Duration Computation
   const durationMs = Date.now() - globalSessionStartTime;
   const mins = Math.floor(durationMs / 60000);
   const secs = Math.floor((durationMs % 60000) / 1000);
 
-  // Render UI with Color Coding and Insight
   let insight = "Focus on form";
-  let messageColor = "#ff4444"; // Red for poor
+  let messageColor = "#ff4444";
   
   if (overallScore > 85) {
     insight = "Excellent session!";
-    messageColor = "#00ff00"; // Green for good
+    messageColor = "#00ff00";
   } else if (overallScore > 65) {
     insight = "Good, but improve consistency";
-    messageColor = "#ffff00"; // Yellow for medium
+    messageColor = "#ffff00";
   }
 
   const msgBox = document.getElementById("perf_message_box");
@@ -450,7 +394,6 @@ function endWorkoutSession() {
   document.getElementById("dash_total_exercises").innerText = Object.keys(exerciseStats).length;
   document.getElementById("dash_overall_score").innerText = `${sessionScore}/100`;
 
-  // 2. Ranking Format overrides
   document.getElementById("dash_best_ex").innerText = bestExercise ? `${bestExercise.name} (${Math.round(bestExercise.avgForm)}%)` : "—";
   document.getElementById("dash_worst_ex").innerText = worstExercise ? `${worstExercise.name} (${Math.round(worstExercise.avgForm)}%)` : "—";
 
@@ -458,7 +401,6 @@ function endWorkoutSession() {
   if (grid) {
     grid.innerHTML = "";
     
-    // 6. Sort Exercise array natively
     const sortedStats = Object.entries(exerciseStats).sort((a, b) => b[1].avgForm - a[1].avgForm);
     
     sortedStats.forEach(([id, stat]) => {
@@ -475,7 +417,6 @@ function endWorkoutSession() {
     });
   }
 
-  // 8. Generate & Render AI Coach Advice
   const savedProfile = JSON.parse(localStorage.getItem("userProfile")) || null;
   const coach = generateCoachAdvice(savedProfile, sessions, exerciseStats);
   
@@ -493,7 +434,6 @@ function endWorkoutSession() {
       const icon = document.createElement("span");
       icon.style.fontSize = "0.9rem";
       
-      // Determine styling and iconography based on type
       switch(obj.type) {
         case "warning":
            li.style.color = "#ff4444";
@@ -522,7 +462,7 @@ function endWorkoutSession() {
       }
 
       const text = document.createElement("span");
-      text.textContent = obj.message; // Safe injection
+      text.textContent = obj.message;
 
       li.appendChild(icon);
       li.appendChild(text);
@@ -530,13 +470,11 @@ function endWorkoutSession() {
     });
   }
 
-  // 9. Update Workout Plan Text
   const planEl = document.getElementById("workout_plan_text");
   if (planEl && coach.weeklyPlanText) {
     planEl.innerText = coach.weeklyPlanText;
   }
 
-  // Finally show overlay with a clean transition
   const overlay = document.getElementById("dashboard_overlay");
   if (overlay) {
     overlay.classList.remove("hidden");
@@ -548,9 +486,6 @@ function endWorkoutSession() {
   }
 }
 
-/**
- * Application entry: load exercises, MediaPipe, webcam loop.
- */
 export async function startSessionApp() {
   globalSessionStartTime = Date.now();
   cacheDomReferences();
@@ -572,9 +507,6 @@ export async function startSessionApp() {
   enableWebcam();
 }
 
-/**
- * Validates and triggers Profile save
- */
 function saveProfile() {
   const userProfile = {
     name: document.getElementById("prof_name").value || "User",
@@ -592,11 +524,7 @@ function saveProfile() {
   }
 }
 
-/**
- * Hydrates profile DOM and computes massive 7-day + array reducers
- */
 function openProfileDashboard() {
-  // 1. Inflate profile
   const savedProfile = JSON.parse(localStorage.getItem("userProfile"));
   if (savedProfile) {
     document.getElementById("prof_name").value = savedProfile.name;
@@ -608,7 +536,6 @@ function openProfileDashboard() {
   const sessions = JSON.parse(localStorage.getItem("sessions")) || [];
   
   if (sessions.length > 0) {
-    // 2. Weekly computations
     const last7Days = sessions.slice(-7);
     let weeklyScoreSum = 0;
     let weeklyRepsSum = 0;
@@ -626,15 +553,12 @@ function openProfileDashboard() {
     document.getElementById("prof_weekly_reps").innerText = weeklyRepsSum;
     document.getElementById("prof_weekly_score").innerText = `${avgWeeklyScore}/100`;
 
-    // 3. Best Performance
     const bestSession = sessions.reduce((best, curr) => (curr.overallScore > best.overallScore ? curr : best), sessions[0]);
     const bestDate = new Date(bestSession.date).toLocaleDateString([], { month: 'short', day: 'numeric' });
     document.getElementById("prof_best_ever_score").innerText = `${Math.round(bestSession.overallScore)} (${bestDate})`;
 
-    // 4. Trend computation (4-tier)
     let trendStr = "Neutral ➖";
     let coachMsg = "Great start on your fitness journey!";
-    let emojiTrend = "⚖️";
     
     if (sessions.length >= 2) {
       const last = sessions[sessions.length - 1];
@@ -644,23 +568,18 @@ function openProfileDashboard() {
       if (diff > 5) {
         trendStr = "Strong improvement 🚀";
         coachMsg = "You are crushing it!";
-        emojiTrend = "🚀";
       } else if (diff > 0) {
         trendStr = "Slight improvement 📈";
         coachMsg = "You're getting stronger!";
-        emojiTrend = "📈";
       } else if (diff > -5) {
         trendStr = "Stable ⚖️";
         coachMsg = "Keep pushing, consistency is key.";
-        emojiTrend = "⚖️";
       } else {
         trendStr = "Needs attention 📉";
         coachMsg = "Focus on consistency and form.";
-        emojiTrend = "📉";
       }
     }
     
-    // Inject Profile specific insight
     const profileGoal = savedProfile ? savedProfile.goal : "muscle_gain";
     if (profileGoal === "muscle_gain") coachMsg += " Focus on progressive overload.";
     if (profileGoal === "fat_loss") coachMsg += " Keep intensity high!";
@@ -669,7 +588,6 @@ function openProfileDashboard() {
     document.getElementById("prof_coach_insight").innerText = coachMsg;
     document.getElementById("prof_coach_insight").style.color = trendStr.includes("Strong") || trendStr.includes("Slight") ? "#00ff00" : trendStr.includes("attention") ? "#ff4444" : "#ffff00";
 
-    // 5. Streak system compute
     let streak = 1;
     for (let i = sessions.length - 1; i > 0; i--) {
       const d1 = new Date(sessions[i].date).setHours(0,0,0,0);
@@ -677,7 +595,6 @@ function openProfileDashboard() {
       const diffDays = (d1 - d0) / (1000 * 60 * 60 * 24);
       if (diffDays <= 1) {
         if (diffDays === 1) streak++;
-        // If 0 (same day), implies multiple sessions today, streak stays intact but doesn't add a day
       } else {
         break;
       }
@@ -685,19 +602,14 @@ function openProfileDashboard() {
     const streakElement = document.getElementById("prof_streak_count");
     if (streakElement) streakElement.innerText = `${streak} Day${streak > 1 ? 's' : ''}`;
 
-    // 6. Habit Meter UI
     const habitState = getHabitState();
     const habitScoreEl = document.getElementById("prof_habit_score");
     const habitBarEl = document.getElementById("prof_habit_bar");
     const habitStatusEl = document.getElementById("prof_habit_status");
     
-    // NEW: Badge Rendering
-    const { getStreakBadge } = import("./habitSystem.js"); // Wait, I should import it at top
-    // I already imported habitSystem at top in previous turn.
-    
     if (habitScoreEl) habitScoreEl.innerText = `${habitState.consistencyScore}%`;
     if (habitBarEl) habitBarEl.style.width = `${habitState.consistencyScore}%`;
-    if (habitStatusEl) habitStatusEl.innerText = getHabitRewardMessage(habitState).replace(/^[^\w]+/, ""); // Remove emoji for status
+    if (habitStatusEl) habitStatusEl.innerText = getHabitRewardMessage(habitState).replace(/^[^\w]+/, "");
 
     const badge = habitState.currentStreak >= 7 ? (habitState.currentStreak >= 14 ? "💪 Consistency King" : "🔥 7-Day Warrior") : "";
     const badgeContainer = document.getElementById("prof_badge_container");
@@ -709,11 +621,9 @@ function openProfileDashboard() {
       badgeContainer.classList.add("hidden");
     }
 
-    // 5. Timeline history mapping
     const historyFeed = document.getElementById("prof_history_feed");
-    historyFeed.innerHTML = ""; // Clear
+    historyFeed.innerHTML = "";
     
-    // Sort reverse chronological
     const reversedSessions = [...sessions].reverse();
     
     reversedSessions.forEach((s, idx) => {
@@ -724,7 +634,6 @@ function openProfileDashboard() {
          Object.entries(s.stats).forEach(([ex, st]) => {
            reps += st.totalReps;
            
-           // Extract exercise-level diff if there is a previous valid session
            let diffText = "";
            if (idx < reversedSessions.length - 1) {
              const historicalPrev = reversedSessions[idx + 1];
@@ -734,7 +643,7 @@ function openProfileDashboard() {
                else if (diff < -2) diffText = `<span style="color:#ff4444; font-size:0.7rem;">${Math.round(diff)}&#8595;</span>`;
              }
            }
-           exTrendsHtml += `<div style="font-size: 0.8rem; color: #888;">${ex}: ${Math.round(st.avgForm)}% ${diffText}</div>`;
+           exTrendsHtml += `<div style="font-size: 0.8rem; color: #888;">${st.name}: ${Math.round(st.avgForm)}% ${diffText}</div>`;
          });
       }
       

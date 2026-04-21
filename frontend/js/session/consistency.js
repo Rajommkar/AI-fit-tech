@@ -1,8 +1,3 @@
-/**
- * Updates rep-to-rep angle consistency (std-dev based), same formula as before.
- * @param {number[]} repAngles
- * @param {HTMLElement} meterElement
- */
 export function updateConsistencyMeter(repAngles, meterElement) {
   if (repAngles.length < 2) return;
   const mean = repAngles.reduce((a, b) => a + b, 0) / repAngles.length;

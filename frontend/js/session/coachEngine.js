@@ -1,13 +1,9 @@
 import { generateWeeklyPlan, generateWorkoutPlan } from "./workoutPlanner.js";
 import { getHabitState, processSessionForHabit, getHabitRewardMessage } from "./habitSystem.js";
 
-/**
- * Advanced Biometric Engine
- */
 export function generateCoachAdvice(profile, sessions, exerciseStats) {
   let advice = [];
   
-  // 1. Technical Consistency Analysis
   let totalReps = 0;
   let perfectReps = 0;
   Object.values(exerciseStats).forEach(s => {
@@ -17,7 +13,6 @@ export function generateCoachAdvice(profile, sessions, exerciseStats) {
   
   const precisionMetric = totalReps > 0 ? (perfectReps / totalReps) * 100 : 0;
   
-  // 2. Weak/Strong Biomechanical Analysis
   const sortedByForm = Object.entries(exerciseStats)
     .sort((a, b) => a[1].avgForm - b[1].avgForm);
 
@@ -40,7 +35,6 @@ export function generateCoachAdvice(profile, sessions, exerciseStats) {
     }
   }
 
-  // 3. Goal-Specific Optimization
   if (profile) {
     const goalMap = {
       muscle_gain: "Focus on TUT (Time Under Tension). Slow the eccentric phase to maximize muscle fiber recruitment.",
@@ -51,7 +45,6 @@ export function generateCoachAdvice(profile, sessions, exerciseStats) {
     advice.push({ type: "info", message: goalMap[profile.goal || "maintenance"] });
   }
 
-  // 4. Longitudinal Trend Analysis (Streak & Frequency)
   const streak = calculateStreak(sessions);
   if (streak > 3) {
     advice.push({ type: "achievement", message: `${streak}-Day Momentum: Your neural pathways are adapting. Consistency is outstanding.` });
@@ -59,7 +52,6 @@ export function generateCoachAdvice(profile, sessions, exerciseStats) {
     advice.push({ type: "info", message: "Welcome back. Focus on a high-volume foundational session to reactivate muscle memory." });
   }
 
-  // --- START USER REQUESTED LOGIC ---
   const last = sessions[sessions.length - 1];
   const prev = sessions[sessions.length - 2];
   let performanceDelta = 0;
@@ -83,9 +75,7 @@ export function generateCoachAdvice(profile, sessions, exerciseStats) {
       advice.push({ type: "warning", message: `Your ${stat.name} form is weak (${Math.round(stat.avgForm)}%). Slow down and control movement.` });
     }
   });
-  // --- END USER REQUESTED LOGIC ---
 
-  // 5. Strategic Next Workout
   const weakExNames = sortedByForm.filter(x => x[1].avgForm < 80).map(x => x[1].name);
   const focusArea = weakExNames.length > 0 ? weakExNames[0] : "General Form";
 
@@ -95,17 +85,14 @@ export function generateCoachAdvice(profile, sessions, exerciseStats) {
     advice.push({ type: "plan", message: "Recommended: Full-body hypertrophy session with increased relative intensity." });
   }
 
-  // 6. Coach Confidence
   const dataDensity = Math.min(100, (totalReps / 20) * 100);
   const confidence = Math.round((precisionMetric * 0.4) + (dataDensity * 0.6));
   advice.unshift({ type: "confidence", message: `AI Coach Confidence: ${confidence}% (Density: ${Math.round(dataDensity)}%)` });
 
-  // 7. Habit Integration
   const habitState = processSessionForHabit(sessions);
   const habitReward = getHabitRewardMessage(habitState);
   advice.push({ type: "achievement", message: `Habit Score: ${habitState.consistencyScore}% — ${habitReward.replace(/^[^\w]+/, "")}` });
 
-  // 8. Weekly Plan Generation
   const weeklyPlan = generateWeeklyPlan(focusArea, sessions, profile?.goal);
   const nextWorkoutBatch = generateWorkoutPlan(profile, exerciseStats);
   
@@ -119,9 +106,6 @@ export function generateCoachAdvice(profile, sessions, exerciseStats) {
   };
 }
 
-/**
- * Calculates current daily streak from session history
- */
 function calculateStreak(sessions) {
   if (sessions.length === 0) return 0;
   let streak = 1;
@@ -138,4 +122,3 @@ function calculateStreak(sessions) {
   }
   return streak;
 }
-

@@ -6,7 +6,6 @@ from typing import List
 
 app = FastAPI(title="NeonFit Elite | Biomechanical API")
 
-# CORS Setup
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,7 +20,6 @@ async def root():
 @app.get("/exercises")
 async def get_exercises():
     try:
-        # Accessing exercises.json inside the local backend/common directory
         file_path = os.path.join(os.path.dirname(__file__), "common", "exercises.json")
         with open(file_path, "r") as f:
             data = json.load(f)
