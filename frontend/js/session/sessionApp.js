@@ -7,7 +7,7 @@ import {
   drawPoseOverlay,
   syncCanvasSizeToVideo,
 } from "./poseDetection.js";
-import { createJointGetter } from "./landmarks.js";
+import { createJointGetter, jointAngleDegrees } from "./landmarks.js";
 import { getRepDebugSnapshot, stepRepExercise } from "./repExercise.js";
 import { stepSequenceExercise } from "./sequenceExercise.js";
 import { generateCoachAdvice } from "./coachEngine.js";
@@ -140,12 +140,7 @@ function updateTelemetry(exercise, getJoint) {
   const joints = exercise.joints.map((j) => getJoint(j));
   if (!joints.every(Boolean)) return;
 
-  const { jointAngleDegrees } = import("./geometry.js"); // Wait, I should probably just import it at top
-  // Actually geometry logic is already available in landmarks.js or I can just import it.
-  // Geometry is already imported in repExercise.js but not exported.
-  // I'll call a helper or just recalculate or just import it at the top of sessionApp.js
-  
-  // Re-calculating for now is cheap
+  // Standardized geometry call (Top-level import used)
   const angle = calculateAngle(joints[0], joints[1], joints[2]);
   telAngleEl.innerText = `${Math.round(angle)}°`;
   telAngleEl.classList.add("active");
@@ -348,11 +343,13 @@ function cacheDomReferences() {
 function endWorkoutSession() {
   const history = repSession.repHistory || [];
   const exerciseStats = {};
+  let totalDuration = 0; // Fix: Declaration
 
   history.forEach(rep => {
-    const ex = rep.exerciseName;
-    if (!exerciseStats[ex]) {
-      exerciseStats[ex] = {
+    const id = rep.exerciseId; // Standardized: Logic on ID
+    if (!exerciseStats[id]) {
+      exerciseStats[id] = {
+        name: rep.exerciseName, // Store Name for UI
         totalReps: 0,
         totalScore: 0,
         totalDuration: 0,
@@ -361,10 +358,11 @@ function endWorkoutSession() {
         durations: []
       };
     }
-    const stat = exerciseStats[ex];
+    const stat = exerciseStats[id];
     stat.totalReps++;
     stat.totalScore += rep.formScore;
     stat.totalDuration += rep.duration;
+    totalDuration += rep.duration; // Added to aggregate session duration
     stat.durations.push(rep.duration);
 
     if (rep.rating === "Perfect Rep") stat.perfect++;
@@ -376,7 +374,7 @@ function endWorkoutSession() {
   let bestExercise = null;
   let worstExercise = null;
 
-  Object.entries(exerciseStats).forEach(([ex, stat]) => {
+  Object.entries(exerciseStats).forEach(([id, stat]) => {
     stat.avgForm = stat.totalScore / stat.totalReps;
     stat.avgSpeed = stat.totalDuration / stat.totalReps;
     
@@ -384,10 +382,10 @@ function endWorkoutSession() {
     totalScore += stat.totalScore;
 
     if (!bestExercise || stat.avgForm > bestExercise.avgForm) {
-      bestExercise = { name: ex, ...stat };
+      bestExercise = { id, ...stat };
     }
     if (!worstExercise || stat.avgForm < worstExercise.avgForm) {
-      worstExercise = { name: ex, ...stat };
+      worstExercise = { id, ...stat };
     }
   });
 
@@ -463,10 +461,10 @@ function endWorkoutSession() {
     // 6. Sort Exercise array natively
     const sortedStats = Object.entries(exerciseStats).sort((a, b) => b[1].avgForm - a[1].avgForm);
     
-    sortedStats.forEach(([ex, stat]) => {
+    sortedStats.forEach(([id, stat]) => {
       grid.innerHTML += `
         <div class="exercise-card">
-          <h4>${ex}</h4>
+          <h4>${stat.name}</h4>
           <p><span>Reps</span> <strong>${stat.totalReps}</strong></p>
           <p><span>Avg Form</span> <strong>${Math.round(stat.avgForm)}%</strong></p>
           <p><span>Avg Speed</span> <strong>${Math.round(stat.avgSpeed)}ms</strong></p>
@@ -484,11 +482,50 @@ function endWorkoutSession() {
   const coachAdviceEl = document.getElementById("coach-advice");
   if (coachAdviceEl) {
     coachAdviceEl.innerHTML = "";
-    coach.advice.forEach(item => {
+    coach.advice.forEach((obj, idx) => {
       const li = document.createElement("li");
-      li.style.animation = "fadeInUp 0.5s ease forwards";
+      li.style.animation = `fadeInUp 0.5s ease forwards ${idx * 0.1}s`;
       li.style.opacity = "0";
-      li.innerHTML = item;
+      li.style.display = "flex";
+      li.style.gap = "0.5rem";
+      li.style.alignItems = "flex-start";
+
+      const icon = document.createElement("span");
+      icon.style.fontSize = "0.9rem";
+      
+      // Determine styling and iconography based on type
+      switch(obj.type) {
+        case "warning":
+           li.style.color = "#ff4444";
+           icon.innerText = "⚠️";
+           break;
+        case "success":
+           li.style.color = "#00ff00";
+           icon.innerText = "✅";
+           break;
+        case "achievement":
+           li.style.color = "#ffdd00";
+           icon.innerText = "🔥";
+           break;
+        case "confidence":
+           li.style.color = "var(--color-neon)";
+           li.style.fontWeight = "600";
+           icon.innerText = "🤖";
+           break;
+        case "plan":
+           li.style.color = "#00d4ff";
+           icon.innerText = "📋";
+           break;
+        default:
+           icon.innerText = "•";
+           li.style.color = "#eee";
+      }
+
+      const text = document.createElement("span");
+      text.textContent = obj.message; // Safe injection
+
+      li.appendChild(icon);
+      li.appendChild(text);
       coachAdviceEl.appendChild(li);
     });
   }

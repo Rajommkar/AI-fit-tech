@@ -46,7 +46,7 @@ const correctiveSchema = {
  * Generates a 7-day plan text summary
  */
 export function generateWeeklyPlan(focusArea, sessions, goal) {
-  const normalizedFocus = focusArea.toLowerCase().replace(" ", "_");
+  const normalizedFocus = focusArea.toLowerCase().replace(/\s+/g, "_");
   const protocolData = correctiveSchema[normalizedFocus] || {
     name: "General Foundations",
     focus: "Total Body Integration",
