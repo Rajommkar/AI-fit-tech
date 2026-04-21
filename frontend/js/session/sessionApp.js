@@ -653,10 +653,24 @@ function openProfileDashboard() {
     const habitScoreEl = document.getElementById("prof_habit_score");
     const habitBarEl = document.getElementById("prof_habit_bar");
     const habitStatusEl = document.getElementById("prof_habit_status");
-
+    
+    // NEW: Badge Rendering
+    const { getStreakBadge } = import("./habitSystem.js"); // Wait, I should import it at top
+    // I already imported habitSystem at top in previous turn.
+    
     if (habitScoreEl) habitScoreEl.innerText = `${habitState.consistencyScore}%`;
     if (habitBarEl) habitBarEl.style.width = `${habitState.consistencyScore}%`;
     if (habitStatusEl) habitStatusEl.innerText = getHabitRewardMessage(habitState).replace(/^[^\w]+/, ""); // Remove emoji for status
+
+    const badge = habitState.currentStreak >= 7 ? (habitState.currentStreak >= 14 ? "💪 Consistency King" : "🔥 7-Day Warrior") : "";
+    const badgeContainer = document.getElementById("prof_badge_container");
+    const badgeTextEl = document.getElementById("prof_badge_text");
+    if (badge && badgeContainer && badgeTextEl) {
+      badgeContainer.classList.remove("hidden");
+      badgeTextEl.innerText = badge;
+    } else if (badgeContainer) {
+      badgeContainer.classList.add("hidden");
+    }
 
     // 5. Timeline history mapping
     const historyFeed = document.getElementById("prof_history_feed");

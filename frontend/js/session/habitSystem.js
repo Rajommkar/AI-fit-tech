@@ -45,16 +45,73 @@ export function processSessionForHabit(sessions) {
   state.totalSessionsAllTime = sessions.length;
   state.lastSessionDate = now.toISOString();
 
+  // Task 1 & 4: Calculate and Store Streak
+  const streak = calculateDailyStreak(sessions);
+  state.currentStreak = streak;
+  localStorage.setItem("streak", streak);
+
+  // Task 2: Missed Day Detection
+  state.lastWarning = "";
+  if (sessions.length >= 1) {
+    const lastSession = new Date(sessions[sessions.length - 1].date);
+    const diffDays = (now.getTime() - lastSession.getTime()) / (1000 * 60 * 60 * 24);
+    if (diffDays > 2) {
+      state.lastWarning = "You missed workouts. Stay consistent!";
+    }
+  }
+
   localStorage.setItem("habitState", JSON.stringify(state));
   return state;
+}
+
+/**
+ * Task 1: Calculate Streak
+ */
+function calculateDailyStreak(sessions) {
+  if (sessions.length === 0) return 0;
+  let streak = 1;
+
+  // Sorting strictly to ensure diff is positive
+  const sorted = [...sessions].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  for (let i = sorted.length - 1; i > 0; i--) {
+    const d1 = new Date(sorted[i].date);
+    const d2 = new Date(sorted[i - 1].date);
+
+    const diff = (d1.getTime() - d2.getTime()) / (1000 * 60 * 60 * 24);
+
+    if (diff <= 1.1) { // 1.1 to allow some buffer for exact timing
+       if (Math.floor(diff) === 1) streak++;
+    } else {
+       break;
+    }
+  }
+
+  return streak;
+}
+
+/**
+ * Task 3: Reward System
+ */
+export function getStreakBadge(streak) {
+  if (streak >= 14) return "💪 Consistency King";
+  if (streak >= 7) return "🔥 7-Day Warrior";
+  return "";
 }
 
 /**
  * Returns a motivational "Reward" message based on consistency
  */
 export function getHabitRewardMessage(state) {
-  if (state.consistencyScore > 90) return "🌟 ELITE CONSISTENCY: Your habits are unbreakable.";
-  if (state.consistencyScore > 70) return "💪 SOLID PROGRESS: You're hitting your weekly targets.";
-  if (state.consistencyScore > 40) return "⚡ STREAK BUILDING: Keep the momentum going!";
+  const badge = getStreakBadge(state.currentStreak || 0);
+  const badgeText = badge ? ` [Badge: ${badge}]` : "";
+
+  if (state.consistencyScore > 90) return `🌟 ELITE CONSISTENCY: Your habits are unbreakable.${badgeText}`;
+  if (state.consistencyScore > 70) return `💪 SOLID PROGRESS: You're hitting your weekly targets.${badgeText}`;
+  if (state.consistencyScore > 40) return `⚡ STREAK BUILDING: Keep the momentum going!${badgeText}`;
+  
+  // Return fatigue/missed warning if any
+  if (state.lastWarning) return `⚠️ ${state.lastWarning}`;
+  
   return "🌱 FOUNDATION PHASE: Every session counts.";
 }
