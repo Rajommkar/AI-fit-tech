@@ -397,10 +397,12 @@ function endWorkoutSession() {
     }
   }
 
+  const sessionAvgSpeed = totalReps > 0 ? (totalDuration / totalReps) : 0;
   sessions.push({
     date: new Date(),
     stats: exerciseStats,
-    overallScore
+    overallScore,
+    avgSpeed: sessionAvgSpeed
   });
   localStorage.setItem("sessions", JSON.stringify(sessions));
 

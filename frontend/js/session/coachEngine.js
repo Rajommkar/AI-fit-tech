@@ -51,21 +51,41 @@ export function generateCoachAdvice(profile, sessions, exerciseStats) {
     advice.push("Welcome back. Focus on a high-volume foundational session to reactivate muscle memory.");
   }
 
-  if (sessions.length >= 2) {
-    const lastIdx = sessions.length - 1;
-    const current = sessions[lastIdx];
-    const previous = sessions[lastIdx - 1];
-    const delta = current.overallScore - previous.overallScore;
+  // --- START USER REQUESTED LOGIC ---
+  const last = sessions[sessions.length - 1];
+  const prev = sessions[sessions.length - 2];
+  let performanceDelta = 0;
 
-    if (delta > 8) {
-      advice.push(`🚀 <strong>Significant Optimization:</strong> Session quality improved by ${Math.round(delta)}%. Your technical precision is peaking.`);
-    } else if (delta < -8) {
-      advice.push(`⚠️ <strong>Fatigue Warning:</strong> ${Math.abs(Math.round(delta))}% performance dip detected. Assess CNS fatigue and prioritize recovery.`);
+  if (prev && last) {
+    performanceDelta = last.overallScore - prev.overallScore;
+    
+    // Task 2: Intelligent Feedback
+    if (performanceDelta > 5) {
+      advice.push("Great improvement! Increase intensity slightly.");
+    } else if (performanceDelta < -5) {
+      advice.push("Performance dropped. Focus on recovery and form.");
+    }
+
+    // Task 4: Fatigue Detection
+    // Note: avgSpeed in our system is ms/rep. Higher value = slower.
+    // User requested: last.avgSpeed > prev.avgSpeed (meaning person slowed down)
+    if (performanceDelta < -10 && last.avgSpeed > prev.avgSpeed) {
+      advice.push("You might be fatigued. Consider a rest day.");
     }
   }
 
+  // Task 3: Exercise-Level Insight
+  Object.entries(exerciseStats).forEach(([ex, stat]) => {
+    if (stat.avgForm < 70) {
+      advice.push(`Your ${ex} form is weak (${Math.round(stat.avgForm)}%). Slow down and control movement.`);
+    }
+  });
+  // --- END USER REQUESTED LOGIC ---
+
   // 5. Strategic Next Workout
   const weakExNames = sortedByForm.filter(x => x[1].avgForm < 80).map(x => x[0]);
+  const focusArea = weakExNames.length > 0 ? weakExNames[0] : "General Form";
+
   if (weakExNames.length > 0) {
     advice.push(`➡️ <strong>Recommended:</strong> Corrective session targeting <u>${weakExNames.slice(0, 2).join(" & ")}</u>.`);
   } else {
@@ -79,6 +99,7 @@ export function generateCoachAdvice(profile, sessions, exerciseStats) {
 
   return {
     advice,
+    focusArea,
     nextWorkout: weakExNames.slice(0, 3)
   };
 }
