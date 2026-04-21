@@ -73,3 +73,42 @@ export function generateWeeklyPlan(focusArea, sessions, goal) {
     rawProtocol: protocolData.protocol
   };
 }
+
+/**
+ * Generates specific exercise prescriptions for the next session
+ * Task 1 - 5 from User Request
+ */
+export function generateWorkoutPlan(profile, exerciseStats) {
+  let plan = [];
+  
+  // Task 2: Prioritize weak areas
+  const weak = Object.entries(exerciseStats)
+    .filter(([_, stat]) => stat.avgForm < 70)
+    .map(([name]) => name);
+
+  // Task 3: Generate plan
+  if (weak.length > 0) {
+    plan.push(...weak.slice(0, 3));
+  } else if (Object.keys(exerciseStats).length > 0) {
+    plan.push(...Object.keys(exerciseStats).slice(0, 3));
+  } else {
+    // Fallback if no sessions recorded yet
+    plan.push("Pushups", "Squats", "Plank");
+  }
+
+  // Task 4: Add sets & reps
+  let prescriptivePlan = plan.map(ex => ({
+    name: ex,
+    sets: 3,
+    reps: 12
+  }));
+
+  // Task 5: Goal-based adjustment
+  if (profile && profile.goal === "muscle_gain") {
+    prescriptivePlan.forEach(p => p.reps = 10);
+  } else if (profile && profile.goal === "endurance") {
+    prescriptivePlan.forEach(p => p.reps = 15);
+  }
+
+  return prescriptivePlan;
+}

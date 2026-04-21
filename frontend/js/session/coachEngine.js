@@ -1,4 +1,4 @@
-import { generateWeeklyPlan } from "./workoutPlanner.js";
+import { generateWeeklyPlan, generateWorkoutPlan } from "./workoutPlanner.js";
 import { getHabitState, processSessionForHabit, getHabitRewardMessage } from "./habitSystem.js";
 
 /**
@@ -105,12 +105,20 @@ export function generateCoachAdvice(profile, sessions, exerciseStats) {
 
   // 8. Weekly Plan Generation
   const weeklyPlan = generateWeeklyPlan(focusArea, sessions, profile?.goal);
+  const nextWorkoutBatch = generateWorkoutPlan(profile, exerciseStats);
+  
   advice.push(`<strong>Next 7 Days:</strong> ${weeklyPlan.title} protocol generated.`);
+
+  // Format the Next Workout batch for the advice list
+  if (nextWorkoutBatch.length > 0) {
+    const listHtml = nextWorkoutBatch.map(p => `<li>${p.name}: ${p.sets}x${p.reps}</li>`).join("");
+    advice.push(`<strong>Next Workout Priority:</strong><ul style="margin: 0.5rem 0; padding-left: 1.5rem;">${listHtml}</ul>`);
+  }
 
   return {
     advice,
     focusArea,
-    nextWorkout: weakExNames.slice(0, 3),
+    nextWorkout: nextWorkoutBatch,
     weeklyPlanText: weeklyPlan.text
   };
 }
