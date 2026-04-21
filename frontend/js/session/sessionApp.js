@@ -1,5 +1,6 @@
 import { PoseLandmarker } from "@mediapipe/tasks-vision";
 import { fetchExerciseDefinitions } from "./exercisesApi.js";
+import { getHabitState, getHabitRewardMessage } from "./habitSystem.js";
 import {
   createPoseLandmarker,
   detectPoseForVideoFrame,
@@ -326,6 +327,19 @@ function cacheDomReferences() {
   });
 
   document.getElementById("save_profile_btn")?.addEventListener("click", saveProfile);
+
+  document.getElementById("copy_plan_btn")?.addEventListener("click", () => {
+    const text = document.getElementById("workout_plan_text")?.innerText;
+    if (text) {
+      navigator.clipboard.writeText(text);
+      const btn = document.getElementById("copy_plan_btn");
+      if (btn) {
+        const orig = btn.innerText;
+        btn.innerText = "Copied!";
+        setTimeout(() => { btn.innerText = orig; }, 2000);
+      }
+    }
+  });
 }
 
 /**
@@ -479,6 +493,12 @@ function endWorkoutSession() {
     });
   }
 
+  // 9. Update Workout Plan Text
+  const planEl = document.getElementById("workout_plan_text");
+  if (planEl && coach.weeklyPlanText) {
+    planEl.innerText = coach.weeklyPlanText;
+  }
+
   // Finally show overlay with a clean transition
   const overlay = document.getElementById("dashboard_overlay");
   if (overlay) {
@@ -627,6 +647,16 @@ function openProfileDashboard() {
     }
     const streakElement = document.getElementById("prof_streak_count");
     if (streakElement) streakElement.innerText = `${streak} Day${streak > 1 ? 's' : ''}`;
+
+    // 6. Habit Meter UI
+    const habitState = getHabitState();
+    const habitScoreEl = document.getElementById("prof_habit_score");
+    const habitBarEl = document.getElementById("prof_habit_bar");
+    const habitStatusEl = document.getElementById("prof_habit_status");
+
+    if (habitScoreEl) habitScoreEl.innerText = `${habitState.consistencyScore}%`;
+    if (habitBarEl) habitBarEl.style.width = `${habitState.consistencyScore}%`;
+    if (habitStatusEl) habitStatusEl.innerText = getHabitRewardMessage(habitState).replace(/^[^\w]+/, ""); // Remove emoji for status
 
     // 5. Timeline history mapping
     const historyFeed = document.getElementById("prof_history_feed");

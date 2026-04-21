@@ -275,6 +275,14 @@
                     </ul>
                   </div>
 
+                  <div class="dash-card plan-box" style="margin-bottom: 2rem; background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255,255,255,0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                      <h3 style="margin: 0;"><span class="emoji">📅</span> 7-Day Training Strategy</h3>
+                      <button id="copy_plan_btn" class="button button--outline" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;">Copy Plan</button>
+                    </div>
+                    <pre id="workout_plan_text" style="white-space: pre-wrap; font-family: 'Courier New', Courier, monospace; color: #aaa; font-size: 0.85rem; line-height: 1.4; background: #111; padding: 1rem; border-radius: 8px;">Plan generating...</pre>
+                  </div>
+
                   <h3 style="margin-top:2rem;">Per-Exercise Breakdown</h3>
                   <div id="per_exercise_grid" class="per-exercise-grid">
                     <!-- Cards injected dynamically here -->
@@ -327,6 +335,17 @@
                       <div class="stat-row"><span>Avg Score:</span><strong id="prof_weekly_score">0/100</strong></div>
                       <div class="stat-row highlight-box" style="margin-top: 0.5rem; background: rgba(255, 68, 68, 0.1); padding: 0.5rem; border-radius: 8px;">
                         <span><span class="emoji" style="margin-right: 0.5rem;">🔥</span>Streak:</span><strong id="prof_streak_count">0 Days</strong>
+                      </div>
+                      
+                      <div class="habit-meter" style="margin-top: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                          <span style="font-size: 0.85rem; font-weight: 600;">Habit Consistency</span>
+                          <span id="prof_habit_score" style="color: var(--color-neon); font-weight: 800;">0%</span>
+                        </div>
+                        <div style="height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                          <div id="prof_habit_bar" style="height: 100%; width: 0%; background: var(--color-neon); box-shadow: 0 0 10px var(--color-neon); transition: width 1s ease;"></div>
+                        </div>
+                        <p id="prof_habit_status" style="font-size: 0.75rem; color: #888; margin-top: 0.4rem;">Leveling up your neural habit loop...</p>
                       </div>
                       <h4 style="margin-top: 1rem; color: var(--color-neon);">Coach Insight:</h4>
                       <p id="prof_coach_insight" style="font-style: italic; color: #aaa; font-size: 0.9rem;">No data yet.</p>

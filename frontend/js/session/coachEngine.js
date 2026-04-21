@@ -1,7 +1,8 @@
+import { generateWeeklyPlan } from "./workoutPlanner.js";
+import { getHabitState, processSessionForHabit, getHabitRewardMessage } from "./habitSystem.js";
+
 /**
  * Advanced Biometric Engine
- * Analyzes session metrics to provide elite-level technical coaching.
- */
 export function generateCoachAdvice(profile, sessions, exerciseStats) {
   let advice = [];
   
@@ -97,10 +98,20 @@ export function generateCoachAdvice(profile, sessions, exerciseStats) {
   const confidence = Math.round((precisionMetric * 0.4) + (dataDensity * 0.6));
   advice.unshift(`<strong>AI Coach Confidence: ${confidence}%</strong> (Session Data Density: ${Math.round(dataDensity)}%)`);
 
+  // 7. Habit Integration
+  const habitState = processSessionForHabit(sessions);
+  const habitReward = getHabitRewardMessage(habitState);
+  advice.push(`<strong>Habit Score: ${habitState.consistencyScore}%</strong> — ${habitReward}`);
+
+  // 8. Weekly Plan Generation
+  const weeklyPlan = generateWeeklyPlan(focusArea, sessions, profile?.goal);
+  advice.push(`<strong>Next 7 Days:</strong> ${weeklyPlan.title} protocol generated.`);
+
   return {
     advice,
     focusArea,
-    nextWorkout: weakExNames.slice(0, 3)
+    nextWorkout: weakExNames.slice(0, 3),
+    weeklyPlanText: weeklyPlan.text
   };
 }
 
