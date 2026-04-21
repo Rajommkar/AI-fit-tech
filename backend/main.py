@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 
-app = FastAPI(title="AI Fit-Tech Baseline Backend")
+app = FastAPI(title="NeonFit Elite | Biomechanical API")
 
 # CORS Setup
 app.add_middleware(

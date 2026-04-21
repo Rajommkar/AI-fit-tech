@@ -1,85 +1,105 @@
+/**
+ * Advanced Biometric Engine
+ * Analyzes session metrics to provide elite-level technical coaching.
+ */
 export function generateCoachAdvice(profile, sessions, exerciseStats) {
   let advice = [];
   
-  // 1. Weak Exercise Detection
-  const weakExercisesList = Object.entries(exerciseStats)
-    .filter(([_, stat]) => stat.avgForm < 70);
+  // 1. Technical Consistency Analysis (Standard Deviation Mock/Metric)
+  let totalReps = 0;
+  let perfectReps = 0;
+  Object.values(exerciseStats).forEach(s => {
+    totalReps += s.totalReps;
+    perfectReps += s.perfect;
+  });
+  
+  const precisionMetric = totalReps > 0 ? (perfectReps / totalReps) * 100 : 0;
+  
+  // 2. Weak/Strong Biomechanical Analysis
+  const sortedByForm = Object.entries(exerciseStats)
+    .sort((a, b) => a[1].avgForm - b[1].avgForm);
 
-  if (weakExercisesList.length > 0) {
-    const focusEx = weakExercisesList[0];
-    advice.push(`🎯 Focus Today: ${focusEx[0]}`);
+  if (sortedByForm.length > 0) {
+    const weakest = sortedByForm[0];
+    const strongest = sortedByForm[sortedByForm.length - 1];
 
-    weakExercisesList.forEach(([name, stat]) => {
-      advice.push(`🔥 Your ${name} form dropped to ${Math.round(stat.avgForm)}%. Focus on depth and control.`);
-    });
+    if (weakest[1].avgForm < 75) {
+      advice.push(`<strong>Critical Focus:</strong> Your ${weakest[0]} kinetic chain shows instability (Avg ${Math.round(weakest[1].avgForm)}%). Prioritize concentric control.`);
+    }
+
+    if (strongest[1].avgForm > 90) {
+      advice.push(`<strong>Elite Performance:</strong> Technical mastery achieved in ${strongest[0]}. Consider progressive overload or advanced variations.`);
+    }
   }
 
-  // 2. Strong Exercise Detection
-  const strongExercises = Object.entries(exerciseStats)
-    .filter(([_, stat]) => stat.avgForm > 85)
-    .map(([name]) => name);
-
-  if (strongExercises.length > 0) {
-    advice.push(`💪 Strong: Great performance in ${strongExercises.join(", ")}`);
-  }
-
-  // 3. Goal-Based Advice
+  // 3. Goal-Specific Optimization (Technical Tone)
   if (profile) {
-    if (profile.goal === "muscle_gain") {
-      advice.push("Increase resistance and focus on progressive overload.");
-    }
-    if (profile.goal === "fat_loss") {
-      advice.push("Add more cardio and maintain consistency.");
-    }
-    if (profile.goal === "endurance") {
-      advice.push("Focus on pace and shortening rest intervals.");
-    }
+    const goalMap = {
+      muscle_gain: "Focus on TUT (Time Under Tension). Slow the eccentric phase to maximize muscle fiber recruitment.",
+      fat_loss: "Increase power output. Target explosive transitions and maintain a sub-60s rest interval.",
+      endurance: "Metabolic conditioning priority. Focus on rhythmic breathing and maintaining form under fatigue.",
+      maintenance: "Consistency is key. Focus on full ROM (Range of Motion) and joint stability."
+    };
+    advice.push(goalMap[profile.goal || "maintenance"]);
   }
 
-  // 4. Trend-Based Advice and Frequency
-  if (sessions.length < 3) {
-    advice.push("Train at least 3 times per week for better results.");
+  // 4. Longitudinal Trend Analysis (Streak & Frequency)
+  const streak = calculateStreak(sessions);
+  if (streak > 3) {
+    advice.push(`🔥 <strong>${streak}-Day Momentum:</strong> Your neural pathways are adapting. Consistency is outstanding.`);
+  } else if (sessions.length > 0 && streak === 0) {
+    advice.push("Welcome back. Focus on a high-volume foundational session to reactivate muscle memory.");
   }
 
   if (sessions.length >= 2) {
-    const last = sessions[sessions.length - 1];
-    const prev = sessions[sessions.length - 2];
-    
-    if (last.overallScore < prev.overallScore - 10) {
-      advice.push("Consider rest or lighter session tomorrow.");
-    } else if (last.overallScore < prev.overallScore) {
-      advice.push("Your performance dropped slightly — focus on form and recovery.");
-    } else if (last.overallScore > prev.overallScore) {
-      advice.push("Awesome improvement — keep building on this momentum.");
+    const lastIdx = sessions.length - 1;
+    const current = sessions[lastIdx];
+    const previous = sessions[lastIdx - 1];
+    const delta = current.overallScore - previous.overallScore;
+
+    if (delta > 8) {
+      advice.push(`🚀 <strong>Significant Optimization:</strong> Session quality improved by ${Math.round(delta)}%. Your technical precision is peaking.`);
+    } else if (delta < -8) {
+      advice.push(`⚠️ <strong>Fatigue Warning:</strong> ${Math.abs(Math.round(delta))}% performance dip detected. Assess CNS fatigue and prioritize recovery.`);
     }
   }
 
-  // 5. Next Workout Suggestion
-  let nextWorkout = [];
-  if (weakExercisesList.length > 0) {
-    nextWorkout = weakExercisesList.slice(0, 3).map(([name]) => name);
+  // 5. Strategic Next Workout
+  const weakExNames = sortedByForm.filter(x => x[1].avgForm < 80).map(x => x[0]);
+  if (weakExNames.length > 0) {
+    advice.push(`➡️ <strong>Recommended:</strong> Corrective session targeting <u>${weakExNames.slice(0, 2).join(" & ")}</u>.`);
   } else {
-    nextWorkout = Object.keys(exerciseStats).slice(0, 3);
+    advice.push("➡️ <strong>Recommended:</strong> Full-body hypertrophy session with increased relative intensity.");
   }
 
-  advice.push(`➡️ Next: Try focusing on ${nextWorkout.join(", ")}`);
-
-  // 6. Confidence Score
-  // Calculate consistency metric from stats
-  let totalPerf = 0;
-  let totalRepCount = 0;
-  Object.values(exerciseStats).forEach(st => {
-    totalPerf += st.perfect;
-    totalRepCount += st.totalReps;
-  });
-  const consistency = totalRepCount > 0 ? (totalPerf / totalRepCount) * 100 : 0;
-  const overallScoreComputed = sessions.length > 0 ? (sessions[sessions.length - 1].overallScore || 0) : 0;
-  const confidence = Math.round((overallScoreComputed + consistency) / 2);
-
-  advice.unshift(`<strong>Coach Confidence: ${confidence}%</strong>`);
+  // 6. Coach Confidence (Based on Data Density)
+  const dataDensity = Math.min(100, (totalReps / 20) * 100);
+  const confidence = Math.round((precisionMetric * 0.4) + (dataDensity * 0.6));
+  advice.unshift(`<strong>AI Coach Confidence: ${confidence}%</strong> (Session Data Density: ${Math.round(dataDensity)}%)`);
 
   return {
     advice,
-    nextWorkout
+    nextWorkout: weakExNames.slice(0, 3)
   };
 }
+
+/**
+ * Calculates current daily streak from session history
+ */
+function calculateStreak(sessions) {
+  if (sessions.length === 0) return 0;
+  let streak = 1;
+  const sorted = [...sessions].sort((a, b) => new Date(b.date) - new Date(a.date));
+  
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const d1 = new Date(sorted[i].date).setHours(0,0,0,0);
+    const d2 = new Date(sorted[i+1].date).setHours(0,0,0,0);
+    const diff = (d1 - d2) / (1000 * 60 * 60 * 24);
+    
+    if (diff === 1) streak++;
+    else if (diff === 0) continue;
+    else break;
+  }
+  return streak;
+}
+

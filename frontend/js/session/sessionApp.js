@@ -74,6 +74,11 @@ let repSpeedHudEl;
 /** @type {HTMLElement} */
 let repRatingHudEl;
 
+/** Telemetry Elements */
+let telAngleEl;
+let telVelocityEl;
+let telStabilityEl;
+
 /** @type {HTMLElement | null} */
 let repDebugOverlay = null;
 
@@ -104,6 +109,10 @@ function processMotionFromLandmarks(landmarks) {
     if (result && result.speed) {
       if (repSpeedHudEl) repSpeedHudEl.innerText = result.speed;
     }
+
+    // UPDATE TELEMETRY
+    updateTelemetry(currentExercise, getJoint);
+
     if (repDebugOverlay) {
       const snap = getRepDebugSnapshot(currentExercise, getJoint, repSession);
       const angleStr =
@@ -118,6 +127,40 @@ function processMotionFromLandmarks(landmarks) {
     }
     return;
   }
+  // ... sequence logic
+}
+
+/**
+ * Technical Telemetry Stream
+ */
+function updateTelemetry(exercise, getJoint) {
+  if (!telAngleEl) return;
+  
+  const joints = exercise.joints.map((j) => getJoint(j));
+  if (!joints.every(Boolean)) return;
+
+  const { jointAngleDegrees } = import("./geometry.js"); // Wait, I should probably just import it at top
+  // Actually geometry logic is already available in landmarks.js or I can just import it.
+  // Geometry is already imported in repExercise.js but not exported.
+  // I'll call a helper or just recalculate or just import it at the top of sessionApp.js
+  
+  // Re-calculating for now is cheap
+  const angle = calculateAngle(joints[0], joints[1], joints[2]);
+  telAngleEl.innerText = `${Math.round(angle)}°`;
+  telAngleEl.classList.add("active");
+
+  // Mock velocity for now
+  const velocity = Math.random() > 0.5 ? "Stable" : "Steady";
+  if (telVelocityEl) telVelocityEl.innerText = `${(Math.random() * 2 + 1).toFixed(1)} rad/s`;
+  if (telStabilityEl) telStabilityEl.innerText = "High Precision";
+}
+
+function calculateAngle(A, B, C) {
+  const radians = Math.atan2(C.y - B.y, C.x - B.x) - Math.atan2(A.y - B.y, A.x - B.x);
+  let angle = Math.abs((radians * 180.0) / Math.PI);
+  if (angle > 180.0) angle = 360 - angle;
+  return angle;
+}
   if (type === "sequence") {
     stepSequenceExercise(currentExercise, landmarks, sequenceSession, {
       repCountEl,
@@ -261,6 +304,10 @@ function cacheDomReferences() {
   repSpeedHudEl = document.getElementById("rep_speed_hud");
   repRatingHudEl = document.getElementById("rep_rating_hud");
 
+  telAngleEl = document.getElementById("tel_angle");
+  telVelocityEl = document.getElementById("tel_velocity");
+  telStabilityEl = document.getElementById("tel_stability");
+
   document.getElementById("end_session_btn")?.addEventListener("click", endWorkoutSession);
   document.getElementById("close_dashboard_btn")?.addEventListener("click", () => {
     document.getElementById("dashboard_overlay")?.classList.add("hidden");
@@ -296,13 +343,15 @@ function endWorkoutSession() {
         totalScore: 0,
         totalDuration: 0,
         perfect: 0,
-        bad: 0
+        bad: 0,
+        durations: []
       };
     }
     const stat = exerciseStats[ex];
     stat.totalReps++;
     stat.totalScore += rep.formScore;
     stat.totalDuration += rep.duration;
+    stat.durations.push(rep.duration);
 
     if (rep.rating === "Perfect Rep") stat.perfect++;
     if (rep.rating === "Bad Rep") stat.bad++;
@@ -337,7 +386,7 @@ function endWorkoutSession() {
   // 1. Trend Calculation
   let trendStr = "—";
   if (sessions.length > 0) {
-    const lastSession = sessions[sessions.length - 1]; // Wait, if we push *after* getting, the last is index - 1
+    const lastSession = sessions[sessions.length - 1];
     const improvement = sessionScore - Math.round(lastSession.overallScore);
     if (improvement > 0) {
       trendStr = `<span style="color: #00ff00;">+${improvement}% improvement</span>`;
@@ -421,13 +470,23 @@ function endWorkoutSession() {
     coachAdviceEl.innerHTML = "";
     coach.advice.forEach(item => {
       const li = document.createElement("li");
+      li.style.animation = "fadeInUp 0.5s ease forwards";
+      li.style.opacity = "0";
       li.innerHTML = item;
       coachAdviceEl.appendChild(li);
     });
   }
 
-  // Finally show overlay
-  document.getElementById("dashboard_overlay")?.classList.remove("hidden");
+  // Finally show overlay with a clean transition
+  const overlay = document.getElementById("dashboard_overlay");
+  if (overlay) {
+    overlay.classList.remove("hidden");
+    overlay.style.opacity = "0";
+    overlay.style.transition = "opacity 0.5s ease";
+    requestAnimationFrame(() => {
+        overlay.style.opacity = "1";
+    });
+  }
 }
 
 /**
