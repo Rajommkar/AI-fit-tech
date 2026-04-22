@@ -1,16 +1,21 @@
 import { PoseLandmarker } from "@mediapipe/tasks-vision";
 import { fetchExerciseDefinitions } from "./exercisesApi.js";
-import { getHabitState, getHabitRewardMessage } from "./habitSystem.js";
 import {
   createPoseLandmarker,
   detectPoseForVideoFrame,
   drawPoseOverlay,
   syncCanvasSizeToVideo,
 } from "./poseDetection.js";
-import { createJointGetter, jointAngleDegrees } from "./landmarks.js";
-import { getRepDebugSnapshot, stepRepExercise } from "./repExercise.js";
-import { stepSequenceExercise } from "./sequenceExercise.js";
+import { createJointGetter } from "./landmarks.js";
+import { stepRepExercise } from "./repExercise.js";
 import { generateCoachAdvice } from "./coachEngine.js";
+
+// UI Module Imports
+import * as liveUI from "../ui/liveWorkoutUI.js";
+import * as dashboardUI from "../ui/dashboardUI.js";
+import * as coachUI from "../ui/coachUI.js";
+import * as planUI from "../ui/planUI.js";
+import * as profileUI from "../ui/profileUI.js";
 
 let poseLandmarker;
 let webcamRunning = false;
@@ -18,11 +23,9 @@ let lastVideoTime = -1;
 
 let exerciseData = [];
 let currentExercise = null;
-
 let globalSessionStartTime = Date.now();
 
 const repSession = {
-  currentState: "",
   count: 0,
   repAngles: [],
   repPhase: "extended",
@@ -37,101 +40,57 @@ const repSession = {
   repCounted: 0
 };
 
-const sequenceSession = {
-  currentStageIndex: 0,
-  count: 0,
+let video, canvasElement, canvasCtx;
+
+/**
+ * Main Application State Controller
+ */
+const AppState = {
+  LANDING: "entry_point",
+  SETUP: "setup_screen",
+  LIVE: "live_workout"
 };
 
-let video;
-let canvasElement;
-let canvasCtx;
-let repCountEl;
-let consistencyMeterEl;
-let coachingTextEl;
-let exerciseButtonsContainerEl;
-let activeExerciseTitleEl;
-let activeExerciseHudEl;
-
-let repSpeedHudEl;
-let repRatingHudEl;
-
-let telAngleEl;
-let telVelocityEl;
-let telStabilityEl;
-
-let repDebugOverlay = null;
+function setAppState(state) {
+  console.log(`[Flow] Transitioning to state: ${state}`);
+  Object.values(AppState).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.add("hidden");
+    } else {
+      console.warn(`[Flow] Element not found: ${id}`);
+    }
+  });
+  
+  const target = document.getElementById(state);
+  if (target) {
+    target.classList.remove("hidden");
+    console.log(`[Flow] Successfully showed: ${state}`);
+  } else {
+    console.error(`[Flow] Target state element not found: ${state}`);
+  }
+}
 
 function processMotionFromLandmarks(landmarks) {
   if (!currentExercise) return;
 
-  const type = currentExercise.type;
-  if (type === "rep") {
+  if (currentExercise.type === "rep") {
     const getJoint = createJointGetter(landmarks);
-    const result = stepRepExercise(currentExercise, getJoint, repSession, {
-      repCountEl,
-      consistencyMeterEl
-    });
+    const result = stepRepExercise(currentExercise, getJoint, repSession, {});
 
-    if (result && result.feedback) {
-      coachingTextEl.innerText = result.feedback;
-      coachingTextEl.style.color = result.color || "#ffffff";
-    }
+    if (result) {
+      const feedbackType =
+        result.color === "#00ff00"
+          ? "good"
+          : result.color === "#ff4444" || result.color === "#ffff00"
+            ? "bad"
+            : "neutral";
 
-    if (result && result.rating) {
-      if (repRatingHudEl) repRatingHudEl.innerText = result.rating;
+      liveUI.updateRepDisplay(result.reps);
+      liveUI.updateFeedback(result.feedback, feedbackType);
+      liveUI.updateMetrics(result.speed, result.rating);
     }
-    
-    if (result && result.speed) {
-      if (repSpeedHudEl) repSpeedHudEl.innerText = result.speed;
-    }
-
-    updateTelemetry(currentExercise, getJoint);
-
-    if (repDebugOverlay) {
-      const snap = getRepDebugSnapshot(currentExercise, getJoint, repSession);
-      const angleStr =
-        snap.angle === null ? "—" : `${snap.angle.toFixed(1)}°`;
-      repDebugOverlay.innerHTML = [
-        `angle: ${angleStr}`,
-        `phase: ${snap.phase}`,
-        `state: ${snap.state}`,
-        `mode: ${snap.mode}`,
-        `fFrames: ${snap.flexedStableFrames} · eFrames: ${snap.extendedStableFrames}`,
-      ].join("<br>");
-    }
-    return;
   }
-}
-
-function updateTelemetry(exercise, getJoint) {
-  if (!telAngleEl) return;
-  
-  const joints = exercise.joints.map((j) => getJoint(j));
-  if (!joints.every(Boolean)) return;
-
-  const angle = calculateAngle(joints[0], joints[1], joints[2]);
-  telAngleEl.innerText = `${Math.round(angle)}°`;
-  telAngleEl.classList.add("active");
-
-  if (telVelocityEl) telVelocityEl.innerText = `${(Math.random() * 2 + 1).toFixed(1)} rad/s`;
-  if (telStabilityEl) telStabilityEl.innerText = "High Precision";
-}
-
-function calculateAngle(A, B, C) {
-  const radians = Math.atan2(C.y - B.y, C.x - B.x) - Math.atan2(A.y - B.y, A.x - B.x);
-  let angle = Math.abs((radians * 180.0) / Math.PI);
-  if (angle > 180.0) angle = 360 - angle;
-  return angle;
-}
-
-function setupRepDebugOverlay() {
-  if (!new URLSearchParams(window.location.search).has("repDebug")) return;
-  const el = document.createElement("div");
-  el.className = "rep-debug-overlay";
-  el.setAttribute("aria-hidden", "true");
-  el.textContent = "rep debug — select exercise";
-  document.body.appendChild(el);
-  repDebugOverlay = el;
 }
 
 function startExercise(exerciseId) {
@@ -139,74 +98,54 @@ function startExercise(exerciseId) {
   if (!exercise) return;
 
   currentExercise = exercise;
-
+  
+  // Reset session metrics
   repSession.count = 0;
   repSession.repAngles = [];
-  repSession.currentState = "";
-  repSession.flexedStableFrames = 0;
-  repSession.extendedStableFrames = 0;
-  repSession.lastRepTimeMs = 0;
-  repSession.repPhase = "extended";
-  sequenceSession.count = 0;
-  sequenceSession.currentStageIndex = 0;
+  repSession.repHistory = [];
+  repSession.totalScore = 0;
+  repSession.repCounted = 0;
+  repSession.repPhase = exercise.rep_accuracy?.start_phase || "extended";
 
-  repCountEl.innerText = "0";
-  consistencyMeterEl.innerText = "100%";
-  if (activeExerciseTitleEl) {
-    activeExerciseTitleEl.innerText = `${exercise.name} Tracker`;
-  }
-  if (activeExerciseHudEl) {
-    activeExerciseHudEl.innerText = exercise.name;
-  }
-  coachingTextEl.innerText = `Switched to ${exercise.name}. Ready?`;
-  coachingTextEl.style.color = "#ffffff";
-  if (repSpeedHudEl) repSpeedHudEl.innerText = "—";
-  if (repRatingHudEl) repRatingHudEl.innerText = "—";
+  liveUI.updateActiveExercise(exercise.name);
+  liveUI.resetLiveUI();
 
-  if (exerciseButtonsContainerEl) {
-    for (const btn of exerciseButtonsContainerEl.children) {
-      if (btn.dataset.id === exerciseId) {
-        btn.classList.add("active");
-      } else {
-        btn.classList.remove("active");
-      }
-    }
-  }
-
-  if (exercise.type === "rep") {
-    if (exercise.rep_accuracy) {
-      const start = exercise.rep_accuracy.start_phase || "extended";
-      repSession.repPhase = start === "flexed" ? "flexed" : "extended";
-    } else {
-      repSession.currentState = Object.keys(exercise.states)[0];
-    }
-  }
+  // Highlight active button in setup
+  document.querySelectorAll(".exercise-card").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.id === exerciseId);
+  });
 }
 
-function populateExerciseButtons() {
-  if (!exerciseButtonsContainerEl) return;
-  exerciseButtonsContainerEl.innerHTML = '';
-  
-  const targetExercises = ["pushup", "squat", "lunge", "bicep_curl"];
-  const filteredData = exerciseData.filter((ex) => targetExercises.includes(ex.id));
-
-  for (const ex of filteredData) {
-    const btn = document.createElement("button");
-    btn.className = "exercise-btn";
-    btn.dataset.id = ex.id;
-    btn.innerText = ex.name;
-    btn.onclick = () => startExercise(ex.id);
-    exerciseButtonsContainerEl.appendChild(btn);
-  }
-}
-
-function enableWebcam() {
-  if (!navigator.mediaDevices?.getUserMedia) return;
-
-  navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+async function enableWebcam() {
+  if (!video) return;
+  const constraints = { video: { width: 1280, height: 720 } };
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
     video.srcObject = stream;
-    video.addEventListener("loadeddata", runWebcamPredictionLoop, { once: true });
     webcamRunning = true;
+    runWebcamPredictionLoop();
+  } catch (err) {
+    console.error("Webcam access denied", err);
+    alert("Camera access is required for AI tracking.");
+  }
+}
+
+function populateExerciseSelector() {
+  const container = document.getElementById("exercise_selector");
+  if (!container) return;
+  
+  container.innerHTML = "";
+  // SHOW ALL EXERCISES
+  exerciseData.forEach(ex => {
+    const btn = document.createElement("div");
+    btn.className = "exercise-card";
+    btn.dataset.id = ex.id;
+    btn.innerHTML = `
+      <div style="font-size: 2rem; margin-bottom: 1rem;">💪</div>
+      <div style="font-weight: 800;">${ex.name}</div>
+    `;
+    btn.onclick = () => startExercise(ex.id);
+    container.appendChild(btn);
   });
 }
 
@@ -217,7 +156,6 @@ async function runWebcamPredictionLoop() {
 
     if (poseLandmarker) {
       const result = detectPoseForVideoFrame(poseLandmarker, video);
-
       canvasCtx.save();
       canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
@@ -225,67 +163,11 @@ async function runWebcamPredictionLoop() {
         const landmarks = result.landmarks[0];
         drawPoseOverlay(canvasCtx, landmarks, PoseLandmarker);
         processMotionFromLandmarks(landmarks);
-      } else if (repDebugOverlay && currentExercise?.type === "rep") {
-        repDebugOverlay.textContent = "no pose";
       }
       canvasCtx.restore();
     }
   }
-  if (webcamRunning) {
-    window.requestAnimationFrame(runWebcamPredictionLoop);
-  }
-}
-
-function cacheDomReferences() {
-  video = document.getElementById("webcam");
-  canvasElement = document.getElementById("output_canvas");
-  const ctx = canvasElement.getContext("2d");
-  if (!ctx) throw new Error("2D canvas context unavailable");
-  canvasCtx = ctx;
-  repCountEl = document.getElementById("rep_count");
-  consistencyMeterEl = document.getElementById("consistency_meter");
-  coachingTextEl = document.getElementById("coaching_text");
-  exerciseButtonsContainerEl = document.getElementById("exercise_buttons");
-  activeExerciseTitleEl = document.getElementById("active_exercise_title");
-  activeExerciseHudEl = document.getElementById("active_exercise_hud");
-  repSpeedHudEl = document.getElementById("rep_speed_hud");
-  repRatingHudEl = document.getElementById("rep_rating_hud");
-
-  telAngleEl = document.getElementById("tel_angle");
-  telVelocityEl = document.getElementById("tel_velocity");
-  telStabilityEl = document.getElementById("tel_stability");
-
-  document.getElementById("end_session_btn")?.addEventListener("click", endWorkoutSession);
-  document.getElementById("close_dashboard_btn")?.addEventListener("click", () => {
-    document.getElementById("dashboard_overlay")?.classList.add("hidden");
-  });
-
-  const navProfile = document.getElementById("nav_profile");
-  if (navProfile) {
-    navProfile.addEventListener("click", (e) => {
-      e.preventDefault();
-      openProfileDashboard();
-    });
-  }
-
-  document.getElementById("close_profile_btn")?.addEventListener("click", () => {
-    document.getElementById("profile_overlay")?.classList.add("hidden");
-  });
-
-  document.getElementById("save_profile_btn")?.addEventListener("click", saveProfile);
-
-  document.getElementById("copy_plan_btn")?.addEventListener("click", () => {
-    const text = document.getElementById("workout_plan_text")?.innerText;
-    if (text) {
-      navigator.clipboard.writeText(text);
-      const btn = document.getElementById("copy_plan_btn");
-      if (btn) {
-        const orig = btn.innerText;
-        btn.innerText = "Copied!";
-        setTimeout(() => { btn.innerText = orig; }, 2000);
-      }
-    }
-  });
+  if (webcamRunning) requestAnimationFrame(runWebcamPredictionLoop);
 }
 
 function endWorkoutSession() {
@@ -296,384 +178,142 @@ function endWorkoutSession() {
   history.forEach(rep => {
     const id = rep.exerciseId;
     if (!exerciseStats[id]) {
-      exerciseStats[id] = {
-        name: rep.exerciseName,
-        totalReps: 0,
-        totalScore: 0,
-        totalDuration: 0,
-        perfect: 0,
-        bad: 0,
-        durations: []
-      };
+      exerciseStats[id] = { name: rep.exerciseName, totalReps: 0, totalScore: 0, totalDuration: 0, perfect: 0, bad: 0 };
     }
     const stat = exerciseStats[id];
     stat.totalReps++;
     stat.totalScore += rep.formScore;
     stat.totalDuration += rep.duration;
     totalDuration += rep.duration;
-    stat.durations.push(rep.duration);
-
     if (rep.rating === "Perfect Rep") stat.perfect++;
     if (rep.rating === "Bad Rep") stat.bad++;
   });
 
-  let totalReps = 0;
-  let totalScore = 0;
-  let bestExercise = null;
-  let worstExercise = null;
-
+  let totalReps = 0, totalScore = 0, bestExercise = null, worstExercise = null;
   Object.entries(exerciseStats).forEach(([id, stat]) => {
     stat.avgForm = stat.totalScore / stat.totalReps;
     stat.avgSpeed = stat.totalDuration / stat.totalReps;
-    
     totalReps += stat.totalReps;
     totalScore += stat.totalScore;
-
-    if (!bestExercise || stat.avgForm > bestExercise.avgForm) {
-      bestExercise = { id, ...stat };
-    }
-    if (!worstExercise || stat.avgForm < worstExercise.avgForm) {
-      worstExercise = { id, ...stat };
-    }
+    if (!bestExercise || stat.avgForm > bestExercise.avgForm) bestExercise = { id, ...stat };
+    if (!worstExercise || stat.avgForm < worstExercise.avgForm) worstExercise = { id, ...stat };
   });
 
-  const overallScore = totalReps > 0 ? (totalScore / totalReps) : 0;
-  const sessionScore = Math.round(overallScore);
-  
-  let sessions = JSON.parse(localStorage.getItem("sessions")) || [];
-  
-  let trendStr = "—";
-  if (sessions.length > 0) {
-    const lastSession = sessions[sessions.length - 1];
-    const improvement = sessionScore - Math.round(lastSession.overallScore);
-    if (improvement > 0) {
-      trendStr = `<span style="color: #00ff00;">+${improvement}% improvement</span>`;
-    } else if (improvement < 0) {
-      trendStr = `<span style="color: #ff4444;">${improvement}% dropped</span>`;
-    } else {
-      trendStr = "No Change";
-    }
-  }
-
-  const sessionAvgSpeed = totalReps > 0 ? (totalDuration / totalReps) : 0;
-  sessions.push({
-    date: new Date(),
-    stats: exerciseStats,
-    overallScore,
-    avgSpeed: sessionAvgSpeed
-  });
-  localStorage.setItem("sessions", JSON.stringify(sessions));
-
+  const sessionScore = totalReps > 0 ? Math.round(totalScore / totalReps) : 0;
   const durationMs = Date.now() - globalSessionStartTime;
   const mins = Math.floor(durationMs / 60000);
   const secs = Math.floor((durationMs % 60000) / 1000);
 
-  let insight = "Focus on form";
-  let messageColor = "#ff4444";
+  // Prepare Summary Data
+  const summary = {
+    totalReps,
+    totalExercises: Object.keys(exerciseStats).length,
+    sessionScore,
+    durationText: `${mins}m ${secs}s`,
+    bestExName: bestExercise?.name,
+    worstExName: worstExercise?.name,
+    insight: sessionScore > 80 ? "Excellent Mastery!" : "Focus on Control",
+    messageColor: sessionScore > 80 ? "#00ff00" : "#ff4444",
+    trendHtml: "Stable Momentum"
+  };
+
+  // Render via UI Modules
+  dashboardUI.renderDashboard(summary);
+  dashboardUI.renderExerciseBreakdown(exerciseStats);
   
-  if (overallScore > 85) {
-    insight = "Excellent session!";
-    messageColor = "#00ff00";
-  } else if (overallScore > 65) {
-    insight = "Good, but improve consistency";
-    messageColor = "#ffff00";
-  }
+  const savedProfile = JSON.parse(localStorage.getItem("userProfile"));
+  const sessions = JSON.parse(localStorage.getItem("sessions")) || [];
+  sessions.push({ date: new Date(), overallScore: sessionScore, stats: exerciseStats });
+  localStorage.setItem("sessions", JSON.stringify(sessions));
 
-  const msgBox = document.getElementById("perf_message_box");
-  if (msgBox) {
-    msgBox.innerText = totalReps > 0 ? insight : "No reps recorded.";
-    msgBox.style.color = messageColor;
-    msgBox.style.borderColor = messageColor;
-    msgBox.style.background = `rgba(${messageColor === "#00ff00" ? '0,255,0' : messageColor === '#ffff00' ? '255,255,0' : '255,68,68'}, 0.1)`;
-  }
-  
-  document.getElementById("dash_session_duration").innerText = `${mins}m ${secs}s`;
-  document.getElementById("dash_session_trend").innerHTML = trendStr;
-  
-  document.getElementById("dash_total_reps").innerText = totalReps;
-  document.getElementById("dash_total_exercises").innerText = Object.keys(exerciseStats).length;
-  document.getElementById("dash_overall_score").innerText = `${sessionScore}/100`;
-
-  document.getElementById("dash_best_ex").innerText = bestExercise ? `${bestExercise.name} (${Math.round(bestExercise.avgForm)}%)` : "—";
-  document.getElementById("dash_worst_ex").innerText = worstExercise ? `${worstExercise.name} (${Math.round(worstExercise.avgForm)}%)` : "—";
-
-  const grid = document.getElementById("per_exercise_grid");
-  if (grid) {
-    grid.innerHTML = "";
-    
-    const sortedStats = Object.entries(exerciseStats).sort((a, b) => b[1].avgForm - a[1].avgForm);
-    
-    sortedStats.forEach(([id, stat]) => {
-      grid.innerHTML += `
-        <div class="exercise-card">
-          <h4>${stat.name}</h4>
-          <p><span>Reps</span> <strong>${stat.totalReps}</strong></p>
-          <p><span>Avg Form</span> <strong>${Math.round(stat.avgForm)}%</strong></p>
-          <p><span>Avg Speed</span> <strong>${Math.round(stat.avgSpeed)}ms</strong></p>
-          <p><span>Perfect</span> <strong>${stat.perfect}</strong></p>
-          <p><span>Needs Work</span> <strong>${stat.bad}</strong></p>
-        </div>
-      `;
-    });
-  }
-
-  const savedProfile = JSON.parse(localStorage.getItem("userProfile")) || null;
   const coach = generateCoachAdvice(savedProfile, sessions, exerciseStats);
-  
-  const coachAdviceEl = document.getElementById("coach-advice");
-  if (coachAdviceEl) {
-    coachAdviceEl.innerHTML = "";
-    coach.advice.forEach((obj, idx) => {
-      const li = document.createElement("li");
-      li.style.animation = `fadeInUp 0.5s ease forwards ${idx * 0.1}s`;
-      li.style.opacity = "0";
-      li.style.display = "flex";
-      li.style.gap = "0.5rem";
-      li.style.alignItems = "flex-start";
+  coachUI.renderCoachAdvice(coach.advice);
+  planUI.renderPlan(coach.weeklyPlanText);
 
-      const icon = document.createElement("span");
-      icon.style.fontSize = "0.9rem";
-      
-      switch(obj.type) {
-        case "warning":
-           li.style.color = "#ff4444";
-           icon.innerText = "⚠️";
-           break;
-        case "success":
-           li.style.color = "#00ff00";
-           icon.innerText = "✅";
-           break;
-        case "achievement":
-           li.style.color = "#ffdd00";
-           icon.innerText = "🔥";
-           break;
-        case "confidence":
-           li.style.color = "var(--color-neon)";
-           li.style.fontWeight = "600";
-           icon.innerText = "🤖";
-           break;
-        case "plan":
-           li.style.color = "#00d4ff";
-           icon.innerText = "📋";
-           break;
-        default:
-           icon.innerText = "•";
-           li.style.color = "#eee";
-      }
-
-      const text = document.createElement("span");
-      text.textContent = obj.message;
-
-      li.appendChild(icon);
-      li.appendChild(text);
-      coachAdviceEl.appendChild(li);
-    });
-  }
-
-  const planEl = document.getElementById("workout_plan_text");
-  if (planEl && coach.weeklyPlanText) {
-    planEl.innerText = coach.weeklyPlanText;
-  }
-
-  const overlay = document.getElementById("dashboard_overlay");
-  if (overlay) {
-    overlay.classList.remove("hidden");
-    overlay.style.opacity = "0";
-    overlay.style.transition = "opacity 0.5s ease";
-    requestAnimationFrame(() => {
-        overlay.style.opacity = "1";
-    });
-  }
+  dashboardUI.showDashboard();
 }
 
 export async function startSessionApp() {
-  globalSessionStartTime = Date.now();
-  cacheDomReferences();
-  setupRepDebugOverlay();
+  // 1. Initialize UI Modules
+  liveUI.initLiveWorkoutUI();
+  dashboardUI.initDashboardUI();
+  coachUI.initCoachUI();
+  planUI.initPlanUI();
+  profileUI.initProfileUI(saveProfile);
 
-  if (!localStorage.getItem("userProfile")) {
-    const defaultProfile = { name: "User", age: 21, weight: 70, goal: "muscle_gain" };
-    localStorage.setItem("userProfile", JSON.stringify(defaultProfile));
-  }
+  // 2. Setup DOM Event Listeners
+  video = document.getElementById("videoFeed");
+  canvasElement = document.getElementById("poseCanvas");
+  canvasCtx = canvasElement.getContext("2d");
 
+  document.getElementById("start_workout_cta")?.addEventListener("click", () => setAppState(AppState.SETUP));
+  document.getElementById("begin_session_btn")?.addEventListener("click", () => {
+    if (!currentExercise) {
+      alert("Please select an exercise first!");
+      return;
+    }
+    setAppState(AppState.LIVE);
+    enableWebcam(); // START CAMERA
+    globalSessionStartTime = Date.now();
+  });
+  
+  // Back buttons
+  document.getElementById("back_to_landing")?.addEventListener("click", () => setAppState(AppState.LANDING));
+  document.getElementById("finishBtn")?.addEventListener("click", endWorkoutSession);
+  
+  document.getElementById("nav_profile")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    openProfileDashboard();
+  });
+
+  // 3. Load Data
   try {
     exerciseData = await fetchExerciseDefinitions();
-    populateExerciseButtons();
-  } catch (e) {
-    console.error("Failed to load exercises", e);
-  }
+    populateExerciseSelector();
+  } catch (e) { console.error("Data load failed", e); }
 
   poseLandmarker = await createPoseLandmarker();
-  enableWebcam();
+  
+  // Start Webcam
+  navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+    video.srcObject = stream;
+    video.addEventListener("loadeddata", runWebcamPredictionLoop, { once: true });
+    webcamRunning = true;
+  });
 }
 
-function saveProfile() {
-  const userProfile = {
-    name: document.getElementById("prof_name").value || "User",
-    age: parseInt(document.getElementById("prof_age").value) || 21,
-    weight: parseInt(document.getElementById("prof_weight").value) || 70,
-    goal: document.getElementById("prof_goal").value || "muscle_gain"
-  };
-  localStorage.setItem("userProfile", JSON.stringify(userProfile));
-  
-  const btn = document.getElementById("save_profile_btn");
-  if(btn) {
-    const orig = btn.innerText;
-    btn.innerText = "Saved!";
-    setTimeout(() => { btn.innerText = orig; }, 2000);
-  }
+function saveProfile(data) {
+  localStorage.setItem("userProfile", JSON.stringify(data));
+  profileUI.showSaveSuccess();
 }
 
 function openProfileDashboard() {
-  const savedProfile = JSON.parse(localStorage.getItem("userProfile"));
-  if (savedProfile) {
-    document.getElementById("prof_name").value = savedProfile.name;
-    document.getElementById("prof_age").value = savedProfile.age;
-    document.getElementById("prof_weight").value = savedProfile.weight;
-    document.getElementById("prof_goal").value = savedProfile.goal;
-  }
-
-  const sessions = JSON.parse(localStorage.getItem("sessions")) || [];
+  const profile = JSON.parse(localStorage.getItem("userProfile")) || { name: "User", age: 21, weight: 70, goal: "maintenance" };
+  profileUI.renderProfileData(profile);
+  profileUI.showProfile();
   
-  if (sessions.length > 0) {
-    const last7Days = sessions.slice(-7);
-    let weeklyScoreSum = 0;
-    let weeklyRepsSum = 0;
-    last7Days.forEach(s => {
-      weeklyScoreSum += (s.overallScore || 0);
-      let repSum = 0;
-      if (s.stats) {
-         Object.values(s.stats).forEach(st => repSum += st.totalReps);
-      }
-      weeklyRepsSum += repSum;
-    });
+  const sessions = JSON.parse(localStorage.getItem("sessions")) || [];
+  const streak = calculateStreak(sessions);
+  
+  profileUI.renderWeeklyStats({
+    sessions: sessions.length,
+    reps: sessions.reduce((acc, s) => acc + (s.totalReps || 0), 0),
+    avgScore: Math.round(sessions.reduce((acc, s) => acc + s.overallScore, 0) / (sessions.length || 1)),
+    streak
+  });
+}
 
-    const avgWeeklyScore = Math.round(weeklyScoreSum / last7Days.length);
-    document.getElementById("prof_weekly_sessions").innerText = last7Days.length;
-    document.getElementById("prof_weekly_reps").innerText = weeklyRepsSum;
-    document.getElementById("prof_weekly_score").innerText = `${avgWeeklyScore}/100`;
-
-    const bestSession = sessions.reduce((best, curr) => (curr.overallScore > best.overallScore ? curr : best), sessions[0]);
-    const bestDate = new Date(bestSession.date).toLocaleDateString([], { month: 'short', day: 'numeric' });
-    document.getElementById("prof_best_ever_score").innerText = `${Math.round(bestSession.overallScore)} (${bestDate})`;
-
-    let trendStr = "Neutral ➖";
-    let coachMsg = "Great start on your fitness journey!";
-    
-    if (sessions.length >= 2) {
-      const last = sessions[sessions.length - 1];
-      const prev = sessions[sessions.length - 2];
-      const diff = last.overallScore - prev.overallScore;
-      
-      if (diff > 5) {
-        trendStr = "Strong improvement 🚀";
-        coachMsg = "You are crushing it!";
-      } else if (diff > 0) {
-        trendStr = "Slight improvement 📈";
-        coachMsg = "You're getting stronger!";
-      } else if (diff > -5) {
-        trendStr = "Stable ⚖️";
-        coachMsg = "Keep pushing, consistency is key.";
-      } else {
-        trendStr = "Needs attention 📉";
-        coachMsg = "Focus on consistency and form.";
-      }
-    }
-    
-    const profileGoal = savedProfile ? savedProfile.goal : "muscle_gain";
-    if (profileGoal === "muscle_gain") coachMsg += " Focus on progressive overload.";
-    if (profileGoal === "fat_loss") coachMsg += " Keep intensity high!";
-    if (profileGoal === "endurance") coachMsg += " Pace your breathing.";
-
-    document.getElementById("prof_coach_insight").innerText = coachMsg;
-    document.getElementById("prof_coach_insight").style.color = trendStr.includes("Strong") || trendStr.includes("Slight") ? "#00ff00" : trendStr.includes("attention") ? "#ff4444" : "#ffff00";
-
-    let streak = 1;
-    for (let i = sessions.length - 1; i > 0; i--) {
-      const d1 = new Date(sessions[i].date).setHours(0,0,0,0);
-      const d0 = new Date(sessions[i-1].date).setHours(0,0,0,0);
-      const diffDays = (d1 - d0) / (1000 * 60 * 60 * 24);
-      if (diffDays <= 1) {
-        if (diffDays === 1) streak++;
-      } else {
-        break;
-      }
-    }
-    const streakElement = document.getElementById("prof_streak_count");
-    if (streakElement) streakElement.innerText = `${streak} Day${streak > 1 ? 's' : ''}`;
-
-    const habitState = getHabitState();
-    const habitScoreEl = document.getElementById("prof_habit_score");
-    const habitBarEl = document.getElementById("prof_habit_bar");
-    const habitStatusEl = document.getElementById("prof_habit_status");
-    
-    if (habitScoreEl) habitScoreEl.innerText = `${habitState.consistencyScore}%`;
-    if (habitBarEl) habitBarEl.style.width = `${habitState.consistencyScore}%`;
-    if (habitStatusEl) habitStatusEl.innerText = getHabitRewardMessage(habitState).replace(/^[^\w]+/, "");
-
-    const badge = habitState.currentStreak >= 7 ? (habitState.currentStreak >= 14 ? "💪 Consistency King" : "🔥 7-Day Warrior") : "";
-    const badgeContainer = document.getElementById("prof_badge_container");
-    const badgeTextEl = document.getElementById("prof_badge_text");
-    if (badge && badgeContainer && badgeTextEl) {
-      badgeContainer.classList.remove("hidden");
-      badgeTextEl.innerText = badge;
-    } else if (badgeContainer) {
-      badgeContainer.classList.add("hidden");
-    }
-
-    const historyFeed = document.getElementById("prof_history_feed");
-    historyFeed.innerHTML = "";
-    
-    const reversedSessions = [...sessions].reverse();
-    
-    reversedSessions.forEach((s, idx) => {
-      let reps = 0;
-      let exTrendsHtml = "";
-
-      if (s.stats) {
-         Object.entries(s.stats).forEach(([ex, st]) => {
-           reps += st.totalReps;
-           
-           let diffText = "";
-           if (idx < reversedSessions.length - 1) {
-             const historicalPrev = reversedSessions[idx + 1];
-             if (historicalPrev.stats && historicalPrev.stats[ex]) {
-               const diff = st.avgForm - historicalPrev.stats[ex].avgForm;
-               if (diff > 2) diffText = `<span style="color:#00ff00; font-size:0.7rem;">+${Math.round(diff)}&#8593;</span>`;
-               else if (diff < -2) diffText = `<span style="color:#ff4444; font-size:0.7rem;">${Math.round(diff)}&#8595;</span>`;
-             }
-           }
-           exTrendsHtml += `<div style="font-size: 0.8rem; color: #888;">${st.name}: ${Math.round(st.avgForm)}% ${diffText}</div>`;
-         });
-      }
-      
-      const sessionDate = new Date(s.date).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-      const scoreInt = Math.round(s.overallScore || 0);
-      const scoreColorDot = scoreInt > 85 ? "🟢" : scoreInt > 65 ? "🟡" : "🔴";
-      
-      historyFeed.innerHTML += `
-        <div class="history-card" style="flex-wrap: wrap;">
-          <div style="display: flex; width: 100%; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-            <span>
-              <small style="color: #888;">Date</small>
-              <strong>${sessionDate}</strong>
-            </span>
-            <span>
-              <small style="color: #888;">Score</small>
-              <strong>${scoreColorDot} ${scoreInt}</strong>
-            </span>
-            <span>
-              <small style="color: #888;">Reps</small>
-              <strong>${reps}</strong>
-            </span>
-          </div>
-          <div style="width: 100%;">
-            ${exTrendsHtml}
-          </div>
-        </div>
-      `;
-    });
+function calculateStreak(sessions) {
+  if (sessions.length === 0) return 0;
+  let streak = 1;
+  const sorted = [...sessions].sort((a, b) => new Date(b.date) - new Date(a.date));
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const d1 = new Date(sorted[i].date).setHours(0,0,0,0);
+    const d2 = new Date(sorted[i+1].date).setHours(0,0,0,0);
+    const diff = (d1 - d2) / (1000 * 60 * 60 * 24);
+    if (diff === 1) streak++;
+    else if (diff === 0) continue;
+    else break;
   }
-
-  document.getElementById("profile_overlay")?.classList.remove("hidden");
+  return streak;
 }
