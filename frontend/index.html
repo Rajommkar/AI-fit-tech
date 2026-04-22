@@ -117,7 +117,28 @@
                                 <h2>AI Coach</h2>
                                 <button id="backToDashboardBtn" type="button" class="btn btn-outline">Back to Summary</button>
                             </div>
-                            <ul id="coach-advice" class="coach-advice-list"></ul>
+
+                            <div id="coach-screen" class="coach-container">
+                                <div class="coach-card positive">
+                                    <h3>What You Did Well</h3>
+                                    <p id="coachPositive">—</p>
+                                </div>
+
+                                <div class="coach-card warning">
+                                    <h3>Needs Improvement</h3>
+                                    <p id="coachProblem">—</p>
+                                </div>
+
+                                <div class="coach-card action">
+                                    <h3>Next Focus</h3>
+                                    <p id="coachAction">—</p>
+                                </div>
+
+                                <div class="focus-section">
+                                    <h3>Focus Exercises</h3>
+                                    <ul id="focusList"></ul>
+                                </div>
+                            </div>
                         </div>
 
                         <div id="planSection" class="detail-panel hidden">

@@ -250,29 +250,66 @@ body {
   margin-bottom: 20px;
 }
 
-.coach-advice-list {
-  list-style: none;
-  display: grid;
-  gap: 14px;
-}
-
-.coach-advice-item {
+.coach-container {
+  padding: 20px;
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 10px;
-  padding: 14px 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  flex-direction: column;
+  gap: 20px;
 }
 
-.coach-advice-icon {
+.coach-card {
+  background: #0b0f14;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.coach-card.positive {
+  border-left: 4px solid #00ff88;
+}
+
+.coach-card.warning {
+  border-left: 4px solid #ff4d4d;
+}
+
+.coach-card.action {
+  border-left: 4px solid #00e0d0;
+}
+
+.coach-card h3,
+.focus-section h3 {
+  font-size: 14px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.coach-card p {
+  margin-top: 10px;
   font-size: 18px;
-  line-height: 1.2;
+  line-height: 1.6;
+  color: #d8dde3;
 }
 
-.coach-advice-text {
+.focus-section {
+  background: #0b0f14;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.focus-section ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+
+.focus-section li {
+  padding: 8px 0;
+  border-bottom: 1px solid #222;
   color: #d8dde3;
+}
+
+.focus-section li:last-child {
+  border-bottom: none;
 }
 
 .plan-container {

@@ -1,47 +1,40 @@
-/**
- * AI Coach UI Module
- * Handles conversational coaching feedback.
- */
-
 const elements = {
-    coachAdviceList: null,
+    positive: null,
+    problem: null,
+    action: null,
+    focusList: null,
 };
 
 export function initCoachUI() {
-    elements.coachAdviceList = document.getElementById("coach-advice");
+    elements.positive = document.getElementById("coachPositive");
+    elements.problem = document.getElementById("coachProblem");
+    elements.action = document.getElementById("coachAction");
+    elements.focusList = document.getElementById("focusList");
 }
 
-/**
- * Renders the AI coach advice list.
- * Follows the Positive -> Problem -> Action structure.
- */
-export function renderCoachAdvice(adviceArray) {
-    if (!elements.coachAdviceList) return;
-    elements.coachAdviceList.innerHTML = "";
+export function renderCoach(coachData) {
+    if (elements.positive) {
+        elements.positive.innerText = coachData.positive || "Good consistency overall.";
+    }
 
-    adviceArray.forEach((obj, idx) => {
+    if (elements.problem) {
+        elements.problem.innerText = coachData.problem || "No major issues detected.";
+    }
+
+    if (elements.action) {
+        elements.action.innerText = coachData.action || "Maintain your current training level.";
+    }
+
+    renderFocus(coachData.focus || []);
+}
+
+function renderFocus(focusArray) {
+    if (!elements.focusList) return;
+    elements.focusList.innerHTML = "";
+
+    focusArray.forEach((item) => {
         const li = document.createElement("li");
-        li.className = `coach-advice-item coach-advice--${obj.type}`;
-        li.style.animationDelay = `${idx * 0.1}s`;
-        
-        const icon = document.createElement("span");
-        icon.className = "coach-advice-icon";
-        
-        switch(obj.type) {
-            case "warning": icon.innerText = "⚠️"; break;
-            case "success": icon.innerText = "✅"; break;
-            case "achievement": icon.innerText = "🔥"; break;
-            case "confidence": icon.innerText = "🤖"; break;
-            case "plan": icon.innerText = "📋"; break;
-            default: icon.innerText = "•";
-        }
-
-        const text = document.createElement("span");
-        text.className = "coach-advice-text";
-        text.textContent = obj.message;
-
-        li.appendChild(icon);
-        li.appendChild(text);
-        elements.coachAdviceList.appendChild(li);
+        li.innerText = item;
+        elements.focusList.appendChild(li);
     });
 }

@@ -239,7 +239,7 @@ function endWorkoutSession() {
   dashboardUI.renderDashboard(summary, exerciseStats);
 
   const coach = generateCoachAdvice(savedProfile, sessions, exerciseStats);
-  coachUI.renderCoachAdvice(coach.advice);
+  coachUI.renderCoach(coach);
   planUI.renderPlan(coach.weeklyPlanText);
 
   dashboardUI.showDashboard();
