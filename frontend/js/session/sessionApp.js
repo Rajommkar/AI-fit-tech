@@ -203,28 +203,40 @@ function endWorkoutSession() {
   const durationMs = Date.now() - globalSessionStartTime;
   const mins = Math.floor(durationMs / 60000);
   const secs = Math.floor((durationMs % 60000) / 1000);
-
-  // Prepare Summary Data
-  const summary = {
-    totalReps,
-    totalExercises: Object.keys(exerciseStats).length,
-    sessionScore,
-    durationText: `${mins}m ${secs}s`,
-    bestExName: bestExercise?.name,
-    worstExName: worstExercise?.name,
-    insight: sessionScore > 80 ? "Excellent Mastery!" : "Focus on Control",
-    messageColor: sessionScore > 80 ? "#00ff00" : "#ff4444",
-    trendHtml: "Stable Momentum"
-  };
-
-  // Render via UI Modules
-  dashboardUI.renderDashboard(summary);
-  dashboardUI.renderExerciseBreakdown(exerciseStats);
   
   const savedProfile = JSON.parse(localStorage.getItem("userProfile"));
   const sessions = JSON.parse(localStorage.getItem("sessions")) || [];
   sessions.push({ date: new Date(), overallScore: sessionScore, stats: exerciseStats });
   localStorage.setItem("sessions", JSON.stringify(sessions));
+
+  const streak = calculateStreak(sessions);
+  const avgPreviousScore =
+    sessions.length > 1
+      ? Math.round(
+          sessions
+            .slice(0, -1)
+            .reduce((acc, session) => acc + (session.overallScore || 0), 0) /
+            (sessions.length - 1)
+        )
+      : sessionScore;
+  const trend =
+    sessionScore > avgPreviousScore
+      ? "Improving"
+      : sessionScore < avgPreviousScore
+        ? "Needs consistency"
+        : "Steady";
+
+  const summary = {
+    score: sessionScore,
+    totalReps,
+    streak,
+    best: bestExercise?.name,
+    worst: worstExercise?.name,
+    trend,
+    durationText: `${mins}m ${secs}s`
+  };
+
+  dashboardUI.renderDashboard(summary, exerciseStats);
 
   const coach = generateCoachAdvice(savedProfile, sessions, exerciseStats);
   coachUI.renderCoachAdvice(coach.advice);
