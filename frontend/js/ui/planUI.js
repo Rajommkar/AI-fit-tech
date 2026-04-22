@@ -1,51 +1,74 @@
-/**
- * Workout Plan UI Module
- * Handles the display of the 7-day training strategy as visual cards.
- */
-
 const elements = {
     planContainer: null,
+    copyButton: null,
+    currentPlan: [],
 };
 
 export function initPlanUI() {
-    // We repurpose the workout_plan_text as a container for our cards
-    elements.planContainer = document.getElementById("workout_plan_text");
+    elements.planContainer = document.getElementById("planContent");
+    elements.copyButton = document.getElementById("copyPlanBtn");
+    elements.copyButton?.addEventListener("click", copyPlan);
 }
 
 export function showPlanLoading() {
     if (elements.planContainer) {
-        elements.planContainer.innerHTML = `<div class="plan-loader">Synthesizing elite training strategy...</div>`;
+        elements.planContainer.innerHTML = `<div class="plan-day">Building your next 7 days...</div>`;
     }
 }
 
-/**
- * Parses the raw text plan and renders it as visual Day Cards.
- */
-export function renderPlan(planText) {
+export function renderPlan(planData) {
     if (!elements.planContainer) return;
-    
-    // Clear the container and change class for layout
-    elements.planContainer.innerHTML = "";
-    elements.planContainer.className = "plan-container";
-    elements.planContainer.style.background = "transparent";
-    elements.planContainer.style.border = "none";
 
-    // Split by "Day X:"
-    const days = planText.split(/Day \d+:/g).filter(Boolean);
-    
-    days.forEach((dayContent, idx) => {
-        const dayCard = document.createElement("div");
-        dayCard.className = "day-card";
-        
-        const tasks = dayContent.trim().split("\n").filter(line => line.trim().length > 0);
-        
-        dayCard.innerHTML = `
-            <div class="day-card__header">DAY ${idx + 1}</div>
-            <div class="day-card__content">
-                ${tasks.map(task => `<div class="day-card__task">${task.replace(/^-\s*/, '')}</div>`).join('')}
-            </div>
+    elements.currentPlan = Array.isArray(planData) ? planData : [];
+    elements.planContainer.innerHTML = "";
+
+    if (!elements.currentPlan.length) {
+        elements.planContainer.innerHTML = "No plan available.";
+        return;
+    }
+
+    elements.currentPlan.forEach((day, index) => {
+        const div = document.createElement("div");
+        div.className = "plan-day";
+
+        let itemsHTML = "";
+        day.exercises.forEach((exercise) => {
+            itemsHTML += `
+                <div class="plan-item">
+                    ${exercise.name} — ${exercise.sets}x${exercise.reps}
+                </div>
+            `;
+        });
+
+        div.innerHTML = `
+            <h3>Day ${day.day || index + 1}</h3>
+            ${itemsHTML}
         `;
-        
-        elements.planContainer.appendChild(dayCard);
+
+        elements.planContainer.appendChild(div);
     });
+}
+
+async function copyPlan() {
+    if (!elements.currentPlan.length) return;
+
+    const text = elements.currentPlan
+        .map((day, index) => {
+            const exercises = day.exercises
+                .map((exercise) => `${exercise.name} - ${exercise.sets}x${exercise.reps}`)
+                .join("\n");
+
+            return `Day ${day.day || index + 1}\n${exercises}`;
+        })
+        .join("\n\n");
+
+    try {
+        await navigator.clipboard.writeText(text);
+        if (elements.copyButton) elements.copyButton.innerText = "Copied";
+        window.setTimeout(() => {
+            if (elements.copyButton) elements.copyButton.innerText = "Copy Plan";
+        }, 1500);
+    } catch (error) {
+        console.error("Copy failed", error);
+    }
 }

@@ -41,7 +41,7 @@ export function generateCoachAdvice(profile, sessions, exerciseStats) {
     action: goalActions[profile?.goal || "maintenance"] || "Focus on controlled movement and proper form.",
     focus: weakExercises.slice(0, 3),
     nextWorkout: nextWorkoutBatch,
-    weeklyPlanText: weeklyPlan.text
+    weeklyPlan: weeklyPlan.days
   };
 }
 
