@@ -1,5 +1,4 @@
 import { jointAngleDegrees, evaluateAngleCondition } from "./geometry.js";
-import { updateConsistencyMeter } from "./consistency.js";
 
 function checkGenericForm(exercise, angle, session, getJoint) {
   const phase = session.repPhase || session.currentState;
@@ -46,7 +45,7 @@ function checkGenericForm(exercise, angle, session, getJoint) {
   return { feedback, color };
 }
 
-function stepRepExerciseLegacy(exercise, angle, session, hud) {
+function stepRepExerciseLegacy(exercise, angle, session) {
   const stateConfig = exercise.states[session.currentState];
   const conditionMet = evaluateAngleCondition(stateConfig.condition, angle);
 
@@ -55,13 +54,11 @@ function stepRepExerciseLegacy(exercise, angle, session, hud) {
   if (stateConfig.count_on === session.currentState) {
     session.count += 1;
     session.repAngles.push(angle);
-    updateConsistencyMeter(session.repAngles, hud.consistencyMeterEl);
-    hud.repCountEl.innerText = String(session.count);
   }
   session.currentState = stateConfig.next;
 }
 
-function stepRepExerciseStable(exercise, angle, session, hud) {
+function stepRepExerciseStable(exercise, angle, session) {
   const ra = exercise.rep_accuracy;
   const flexMax = ra.flexed_max_angle;
   const extMin = ra.extended_min_angle;
@@ -101,8 +98,6 @@ function stepRepExerciseStable(exercise, angle, session, hud) {
       const duration = session.repStartTime ? now - session.repStartTime : 0;
       session.lastRepTimeMs = now;
       session.repAngles.push(angle);
-      updateConsistencyMeter(session.repAngles, hud.consistencyMeterEl);
-      hud.repCountEl.innerText = String(session.count);
 
       const min_time = exercise.scoring?.min_time || 800;
       const max_time = exercise.scoring?.max_time || 3000;
@@ -155,27 +150,39 @@ function stepRepExerciseStable(exercise, angle, session, hud) {
   return null;
 }
 
-export function stepRepExercise(exercise, getJoint, session, hud) {
+export function stepRepExercise(exercise, getJoint, session) {
   const joints = exercise.joints.map((j) => getJoint(j));
-  if (!joints.every(Boolean)) return { reps: session.count, feedback: "No pose detected", color: "#ffffff" };
+  if (!joints.every(Boolean)) {
+    return { reps: session.count, feedback: "No pose detected", color: "#ffff00" };
+  }
 
   const angle = jointAngleDegrees(joints[0], joints[1], joints[2]);
 
   let metrics = null;
   if (exercise.rep_accuracy) {
-    metrics = stepRepExerciseStable(exercise, angle, session, hud);
+    metrics = stepRepExerciseStable(exercise, angle, session);
   } else {
-    stepRepExerciseLegacy(exercise, angle, session, hud);
+    stepRepExerciseLegacy(exercise, angle, session);
   }
 
   const { feedback, color } = checkGenericForm(exercise, angle, session, getJoint);
+
+  // Calculate consistency
+  let consistency = "100%";
+  if (session.repAngles.length >= 2) {
+    const mean = session.repAngles.reduce((a, b) => a + b, 0) / session.repAngles.length;
+    const variance = session.repAngles.reduce((sum, v) => sum + (v - mean) ** 2, 0) / session.repAngles.length;
+    const stdDev = Math.sqrt(variance);
+    consistency = `${Math.floor(Math.max(0, 100 - stdDev * 5))}%`;
+  }
 
   return {
     reps: session.count,
     feedback: metrics && metrics.overrideFeedback ? metrics.overrideFeedback : feedback,
     color: metrics && metrics.overrideFeedback ? "#00ff00" : color,
     speed: metrics ? metrics.speed : null,
-    rating: metrics ? metrics.rating : null
+    rating: metrics ? metrics.rating : null,
+    consistency
   };
 }
 

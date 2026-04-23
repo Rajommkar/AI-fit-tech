@@ -9,155 +9,306 @@
 <body>
     <div id="app">
         <main class="main-content">
-            <!-- 1. LANDING -->
-            <section id="entry_point" class="app-section">
-                <div style="text-align: center; margin-top: 15vh;">
-                    <h1 style="font-size: 5rem; font-weight: 900; margin-bottom: 1rem;">
-                        Master Your <span style="color: #00ffff;">Form</span>
-                    </h1>
-                    <p style="color: #888; font-size: 1.25rem; margin-bottom: 4rem;">
-                        Elite AI coaching with real-time biomechanical analysis.
-                    </p>
-                    <button id="start_workout_cta" class="btn btn-primary">Start Training Session</button>
+            <section id="landing_screen" class="app-section" data-view="landing">
+                <div class="screen-shell screen-shell--landing">
+                    <div class="hero-copy">
+                        <p class="eyebrow">AI Fit-Tech</p>
+                        <h1>Train with feedback that reacts as fast as you move.</h1>
+                        <p class="hero-text">
+                            Start fast, get live form guidance, and finish with clear insights you can actually use.
+                        </p>
+                        <div class="hero-actions">
+                            <button id="start_workout_cta" class="btn btn-primary">Quick Start Pushups</button>
+                            <button id="open_setup_cta" class="btn btn-outline">Choose Workout</button>
+                        </div>
+                    </div>
+
+                    <div class="hero-panel">
+                        <div class="hero-panel__card">
+                            <span class="hero-panel__label">Flow</span>
+                            <strong>Start -> Train -> Analyze -> Improve</strong>
+                            <p>One guided path from first click to your next plan.</p>
+                        </div>
+                        <div class="hero-panel__card">
+                            <span class="hero-panel__label">Live Focus</span>
+                            <strong>Reps, coaching, tracking</strong>
+                            <p>The workout screen only shows what matters right now.</p>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            <section id="setup_screen" class="app-section hidden">
-                <div style="max-width: 900px; margin: 0 auto;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                        <h2 style="font-size: 2.5rem;">Select Your Focus</h2>
-                        <button id="back_to_landing" class="btn btn-outline" style="padding: 0.5rem 1rem;">&larr; Back</button>
+            <section id="setup_screen" class="app-section hidden" data-view="setup">
+                <div class="screen-shell screen-shell--setup">
+                    <div class="screen-header">
+                        <div>
+                            <p class="eyebrow">Workout Setup</p>
+                            <h2>Pick one focus and start immediately.</h2>
+                        </div>
+                        <button id="back_to_landing" class="btn btn-outline">Back</button>
                     </div>
-                    <div id="exercise_selector" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem;">
-                        <!-- Exercises injected here -->
+
+                    <div class="setup-grid">
+                        <article class="setup-featured-card">
+                            <p class="setup-featured-card__kicker">Quick Start</p>
+                            <h3>Pushups</h3>
+                            <p>Jump straight into the live coach with our best calibrated starter movement.</p>
+                            <button id="quick_start_btn" class="btn btn-primary">Start Pushup Session</button>
+                        </article>
+
+                        <div class="setup-secondary-card">
+                            <div class="setup-secondary-card__header">
+                                <div>
+                                    <p class="eyebrow">More Options</p>
+                                    <h3>Choose another focus</h3>
+                                </div>
+                                <p class="setup-note">Kept intentionally short to avoid setup overload.</p>
+                            </div>
+                            <div id="exercise_selector" class="setup-exercise-grid"></div>
+                            <button id="begin_session_btn" class="btn btn-outline">Start Selected Workout</button>
+                        </div>
                     </div>
-                    <button id="begin_session_btn" class="btn btn-primary" style="margin-top: 4rem; width: 100%;">Initialize Tracking</button>
                 </div>
             </section>
 
-            <!-- 3. LIVE -->
-            <section id="live_workout" class="app-section hidden">
+            <section id="live_workout" class="app-section hidden" data-view="live">
                 <div id="live-workout" class="live-container">
                     <div class="camera-section">
                         <video id="videoFeed" autoplay playsinline></video>
                         <canvas id="poseCanvas"></canvas>
+                        <div class="camera-guidance-banner" id="cameraGuidanceBanner">Step into frame to begin tracking.</div>
                     </div>
 
                     <div class="coach-panel">
-                        <div class="exercise-name" id="exerciseName">Pushups</div>
+                        <div class="live-header">
+                            <div>
+                                <p class="eyebrow">Live Workout</p>
+                                <div class="exercise-name" id="exerciseName">Pushup</div>
+                            </div>
+                            <button id="exit_live_btn" class="btn btn-outline">Exit</button>
+                        </div>
 
-                        <div class="rep-display" id="repCount">0</div>
+                        <div class="rep-display-wrap">
+                            <div class="rep-display" id="repCount">0</div>
+                            <div class="rep-label">completed reps</div>
+                        </div>
 
-                        <div class="feedback" id="feedbackText">
-                            Ready? Start your first rep.
+                        <div class="feedback-card" id="feedbackCard">
+                            <div class="feedback-title">Coach Feedback</div>
+                            <div class="feedback" id="feedbackText">Ready when you are. Get into position.</div>
+                        </div>
+
+                        <div class="live-status-grid">
+                            <div class="status-card">
+                                <span class="status-card__label">Movement</span>
+                                <strong id="movementState">Hold</strong>
+                            </div>
+                            <div class="status-card">
+                                <span class="status-card__label">Tracking</span>
+                                <strong id="trackingStatus">Waiting</strong>
+                            </div>
+                        </div>
+
+                        <div class="progress-card">
+                            <div class="progress-card__header">
+                                <span>Rep Progress</span>
+                                <strong id="progressPercent">0%</strong>
+                            </div>
+                            <div class="progress-bar">
+                                <div id="progressFill" class="progress-bar__fill"></div>
+                            </div>
+                        </div>
+
+                        <div class="guidance-card">
+                            <span class="status-card__label">Camera Guidance</span>
+                            <strong id="guidanceText">Full body not visible yet.</strong>
                         </div>
 
                         <div class="metrics">
-                            <div>Speed: <span id="speedVal">—</span></div>
-                            <div>Rating: <span id="ratingVal">—</span></div>
+                            <div class="metric-chip">
+                                <span>Speed</span>
+                                <strong id="speedVal">-</strong>
+                            </div>
+                            <div class="metric-chip">
+                                <span>Rating</span>
+                                <strong id="ratingVal">-</strong>
+                            </div>
                         </div>
 
-                        <button id="finishBtn" disabled>Finish Session</button>
+                        <button id="finishBtn" class="btn btn-primary">Finish Session</button>
                     </div>
                 </div>
             </section>
 
-            <!-- 4. DASHBOARD -->
-            <div id="dashboard_overlay" class="app-section hidden dashboard-overlay-shell">
-                <div class="dashboard-shell">
-                    <div class="dashboard-topbar">
-                        <h1>Session Summary</h1>
+            <section id="dashboard_screen" class="app-section hidden" data-view="dashboard">
+                <div class="screen-shell">
+                    <div class="screen-header">
+                        <div>
+                            <p class="eyebrow">Dashboard</p>
+                            <h2>See what improved and what needs your attention next.</h2>
+                        </div>
                         <button id="close_dashboard_btn" class="btn btn-outline">Return Home</button>
                     </div>
 
                     <div id="dashboard" class="dashboard-container">
-                        <div class="hero-metrics">
-                            <div class="card">
-                                <h3>Score</h3>
-                                <p id="scoreVal">0</p>
+                        <div class="dashboard-hero">
+                            <div class="dashboard-hero__score card card--hero">
+                                <span class="hero-stat-label">Session Score</span>
+                                <p id="scoreVal" class="hero-stat-value">0</p>
+                                <p id="scoreSummary" class="hero-summary">Start your first workout to unlock your score.</p>
                             </div>
 
-                            <div class="card">
-                                <h3>Reps</h3>
-                                <p id="totalRepsVal">0</p>
-                            </div>
+                            <div class="hero-metrics">
+                                <div class="card">
+                                    <h3>Total Reps</h3>
+                                    <p id="totalRepsVal">0</p>
+                                    <span id="totalRepsHelp" class="card-help">No reps logged yet.</span>
+                                </div>
 
-                            <div class="card">
-                                <h3>Streak</h3>
-                                <p id="streakVal">0</p>
+                                <div class="card">
+                                    <h3>Streak</h3>
+                                    <p id="streakVal">0</p>
+                                    <span id="streakHelp" class="card-help">Show up today to start building momentum.</span>
+                                </div>
                             </div>
                         </div>
 
                         <div class="insights">
                             <div class="card">
                                 <h3>Best Exercise</h3>
-                                <p id="bestExercise">—</p>
+                                <p id="bestExercise">-</p>
                             </div>
 
                             <div class="card">
-                                <h3>Needs Work</h3>
-                                <p id="worstExercise">—</p>
+                                <h3>Needs Improvement</h3>
+                                <p id="worstExercise">-</p>
                             </div>
 
                             <div class="card">
                                 <h3>Trend</h3>
-                                <p id="trendVal">—</p>
+                                <p id="trendVal">-</p>
                             </div>
                         </div>
 
+                        <div class="section-title-row">
+                            <h3>Exercise Breakdown</h3>
+                            <p>Each card shows completed reps and average form score.</p>
+                        </div>
                         <div class="breakdown" id="exerciseBreakdown"></div>
 
                         <div class="dashboard-actions">
-                            <button id="openCoachBtn" type="button">View AI Coach</button>
-                            <button id="openPlanBtn" type="button">View Plan</button>
-                        </div>
-
-                        <div id="coachSection" class="detail-panel hidden">
-                            <div class="detail-panel__header">
-                                <h2>AI Coach</h2>
-                                <button id="backToDashboardBtn" type="button" class="btn btn-outline">Back to Summary</button>
-                            </div>
-
-                            <div id="coach-screen" class="coach-container">
-                                <div class="coach-card positive">
-                                    <h3>What You Did Well</h3>
-                                    <p id="coachPositive">—</p>
-                                </div>
-
-                                <div class="coach-card warning">
-                                    <h3>Needs Improvement</h3>
-                                    <p id="coachProblem">—</p>
-                                </div>
-
-                                <div class="coach-card action">
-                                    <h3>Next Focus</h3>
-                                    <p id="coachAction">—</p>
-                                </div>
-
-                                <div class="focus-section">
-                                    <h3>Focus Exercises</h3>
-                                    <ul id="focusList"></ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="planSection" class="detail-panel hidden">
-                            <div class="detail-panel__header">
-                                <h2>7-Day Plan</h2>
-                                <button id="backToDashboardBtnPlan" type="button" class="btn btn-outline">Back to Summary</button>
-                            </div>
-                            <div id="plan-screen" class="plan-container">
-                                <div class="plan-header">
-                                    <h2>Your 7-Day Plan</h2>
-                                    <button id="copyPlanBtn" type="button">Copy Plan</button>
-                                </div>
-
-                                <div id="planContent" class="plan-content"></div>
-                            </div>
+                            <button id="openCoachBtn" type="button" class="btn btn-primary">Open AI Coach</button>
+                            <button id="openPlanBtn" type="button" class="btn btn-outline">Open Plan</button>
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
+
+            <section id="coach_screen" class="app-section hidden" data-view="coach">
+                <div class="screen-shell">
+                    <div class="screen-header">
+                        <div>
+                            <p class="eyebrow">AI Coach</p>
+                            <h2>Human guidance, not workout logs.</h2>
+                        </div>
+                        <button id="backToDashboardBtn" type="button" class="btn btn-outline">Back to Dashboard</button>
+                    </div>
+
+                    <div id="coach-screen" class="coach-container">
+                        <div class="coach-card positive">
+                            <h3>What Went Well</h3>
+                            <p id="coachPositive">-</p>
+                        </div>
+
+                        <div class="coach-card warning">
+                            <h3>What To Fix</h3>
+                            <p id="coachProblem">-</p>
+                        </div>
+
+                        <div class="coach-card action">
+                            <h3>Next Action</h3>
+                            <p id="coachAction">-</p>
+                        </div>
+
+                        <div class="focus-section">
+                            <h3>Focus Next</h3>
+                            <ul id="focusList"></ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="plan_screen" class="app-section hidden" data-view="plan">
+                <div class="screen-shell">
+                    <div class="screen-header">
+                        <div>
+                            <p class="eyebrow">Plan</p>
+                            <h2>Follow the next 7 days without overthinking it.</h2>
+                        </div>
+                        <button id="backToDashboardBtnPlan" type="button" class="btn btn-outline">Back to Dashboard</button>
+                    </div>
+
+                    <div id="plan-screen" class="plan-container">
+                        <div class="plan-header">
+                            <div>
+                                <h2>Your 7-Day Plan</h2>
+                                <p class="plan-subtitle">Day-wise, structured, and ready to start.</p>
+                            </div>
+                            <div class="plan-header__actions">
+                                <button id="startPlanBtn" type="button" class="btn btn-primary">Start Plan</button>
+                                <button id="copyPlanBtn" type="button" class="btn btn-outline">Copy Plan</button>
+                            </div>
+                        </div>
+
+                        <div id="planContent" class="plan-content"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="profile_screen" class="app-section hidden" data-view="profile">
+                <div class="screen-shell">
+                    <div class="screen-header">
+                        <div>
+                            <p class="eyebrow">Profile</p>
+                            <h2>Track your consistency and keep your goals current.</h2>
+                        </div>
+                        <button id="close_profile_btn" class="btn btn-outline">Back</button>
+                    </div>
+
+                    <div class="profile-grid">
+                        <div class="profile-card">
+                            <h3>About You</h3>
+                            <div class="profile-form">
+                                <label>Name<input id="prof_name" type="text" placeholder="Your name"></label>
+                                <label>Age<input id="prof_age" type="number" placeholder="21"></label>
+                                <label>Weight<input id="prof_weight" type="number" placeholder="70"></label>
+                                <label>Goal
+                                    <select id="prof_goal">
+                                        <option value="maintenance">Maintenance</option>
+                                        <option value="muscle_gain">Muscle Gain</option>
+                                        <option value="fat_loss">Fat Loss</option>
+                                        <option value="endurance">Endurance</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <button id="save_profile_btn" class="btn btn-primary">Save Profile</button>
+                        </div>
+
+                        <div class="profile-card">
+                            <h3>Weekly Progress</h3>
+                            <div id="prof_weekly_sessions"></div>
+                            <div id="prof_weekly_reps"></div>
+                            <div id="prof_weekly_score"></div>
+                            <div id="prof_streak_count"></div>
+                        </div>
+
+                        <div class="profile-card profile-card--wide">
+                            <h3>History</h3>
+                            <div id="prof_history_feed" class="profile-history-empty">Your session history will appear here.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
     <script type="module" src="/main.js"></script>

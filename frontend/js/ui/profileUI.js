@@ -1,104 +1,96 @@
-/**
- * Profile UI Module
- * Handles athlete profile data, history timeline, and streaks with a visual layout.
- */
-
 const elements = {
-    overlay: null,
-    nameInput: null,
-    ageInput: null,
-    weightInput: null,
-    goalInput: null,
-    saveBtn: null,
-    weeklySessions: null,
-    weeklyReps: null,
-    weeklyScore: null,
-    streak: null,
-    historyFeed: null
+  screen: null,
+  nameInput: null,
+  ageInput: null,
+  weightInput: null,
+  goalInput: null,
+  saveBtn: null,
+  weeklySessions: null,
+  weeklyReps: null,
+  weeklyScore: null,
+  streak: null,
+  historyFeed: null,
 };
 
 export function initProfileUI(saveCallback) {
-    elements.overlay = document.getElementById("profile_overlay");
-    elements.nameInput = document.getElementById("prof_name");
-    elements.ageInput = document.getElementById("prof_age");
-    elements.weightInput = document.getElementById("prof_weight");
-    elements.goalInput = document.getElementById("prof_goal");
-    elements.saveBtn = document.getElementById("save_profile_btn");
-    
-    elements.weeklySessions = document.getElementById("prof_weekly_sessions");
-    elements.weeklyReps = document.getElementById("prof_weekly_reps");
-    elements.weeklyScore = document.getElementById("prof_weekly_score");
-    elements.streak = document.getElementById("prof_streak_count");
-    
-    elements.historyFeed = document.getElementById("prof_history_feed");
+  elements.screen = document.getElementById("profile_screen");
+  elements.nameInput = document.getElementById("prof_name");
+  elements.ageInput = document.getElementById("prof_age");
+  elements.weightInput = document.getElementById("prof_weight");
+  elements.goalInput = document.getElementById("prof_goal");
+  elements.saveBtn = document.getElementById("save_profile_btn");
+  elements.weeklySessions = document.getElementById("prof_weekly_sessions");
+  elements.weeklyReps = document.getElementById("prof_weekly_reps");
+  elements.weeklyScore = document.getElementById("prof_weekly_score");
+  elements.streak = document.getElementById("prof_streak_count");
+  elements.historyFeed = document.getElementById("prof_history_feed");
 
-    elements.saveBtn?.addEventListener("click", () => {
-        const data = {
-            name: elements.nameInput.value,
-            age: parseInt(elements.ageInput.value),
-            weight: parseInt(elements.weightInput.value),
-            goal: elements.goalInput.value
-        };
-        saveCallback(data);
-    });
-
-    document.getElementById("close_profile_btn")?.addEventListener("click", hideProfile);
+  elements.saveBtn?.addEventListener("click", () => {
+    const data = {
+      name: elements.nameInput?.value || "User",
+      age: parseInt(elements.ageInput?.value || "21", 10),
+      weight: parseInt(elements.weightInput?.value || "70", 10),
+      goal: elements.goalInput?.value || "maintenance",
+    };
+    saveCallback(data);
+  });
 }
 
 export function renderProfileData(profile) {
-    if (elements.nameInput) elements.nameInput.value = profile.name;
-    if (elements.ageInput) elements.ageInput.value = profile.age;
-    if (elements.weightInput) elements.weightInput.value = profile.weight;
-    if (elements.goalInput) elements.goalInput.value = profile.goal;
+  if (elements.nameInput) elements.nameInput.value = profile.name || "";
+  if (elements.ageInput) elements.ageInput.value = profile.age || "";
+  if (elements.weightInput) elements.weightInput.value = profile.weight || "";
+  if (elements.goalInput) elements.goalInput.value = profile.goal || "maintenance";
 }
 
 export function renderWeeklyStats(stats) {
-    if (elements.weeklySessions) {
-        elements.weeklySessions.innerHTML = `
-            <div class="stat-card">
-                <span class="label">Weekly Sessions</span>
-                <strong style="display: block; font-size: 1.5rem; color: var(--color-neon);">${stats.sessions}</strong>
-            </div>`;
-    }
-    if (elements.weeklyReps) {
-        elements.weeklyReps.innerHTML = `
-            <div class="stat-card">
-                <span class="label">Total Reps</span>
-                <strong style="display: block; font-size: 1.5rem; color: var(--color-neon);">${stats.reps}</strong>
-            </div>`;
-    }
-    if (elements.weeklyScore) {
-        elements.weeklyScore.innerHTML = `
-            <div class="stat-card">
-                <span class="label">Avg Form</span>
-                <strong style="display: block; font-size: 1.5rem; color: var(--color-neon);">${stats.avgScore}%</strong>
-            </div>`;
-    }
-    if (elements.streak) {
-        elements.streak.innerHTML = `
-            <div class="stat-card" style="border-color: #ffaa00; background: rgba(255, 170, 0, 0.05);">
-                <span class="label">Current Streak</span>
-                <strong style="display: block; font-size: 1.5rem; color: #ffaa00;">${stats.streak} Days 🔥</strong>
-            </div>`;
-    }
+  if (elements.weeklySessions) {
+    elements.weeklySessions.innerHTML = statMarkup("Weekly Sessions", stats.sessions);
+  }
+  if (elements.weeklyReps) {
+    elements.weeklyReps.innerHTML = statMarkup("Total Reps", stats.reps);
+  }
+  if (elements.weeklyScore) {
+    elements.weeklyScore.innerHTML = statMarkup("Avg Form", `${stats.avgScore}%`);
+  }
+  if (elements.streak) {
+    elements.streak.innerHTML = statMarkup("Current Streak", `${stats.streak} days`);
+  }
 }
 
-export function renderHistory(historyHtml) {
-    if (elements.historyFeed) elements.historyFeed.innerHTML = historyHtml;
-}
+export function renderHistory(items) {
+  if (!elements.historyFeed) return;
 
-export function showProfile() {
-    elements.overlay?.classList.remove("hidden");
-}
+  if (!items?.length) {
+    elements.historyFeed.innerHTML = "Your session history will appear here.";
+    return;
+  }
 
-export function hideProfile() {
-    elements.overlay?.classList.add("hidden");
+  elements.historyFeed.innerHTML = items
+    .map((item) => `
+      <div class="plan-item">
+        <strong>${item.title}</strong>
+        <span>${item.subtitle}</span>
+      </div>
+    `)
+    .join("");
 }
 
 export function showSaveSuccess() {
-    if (elements.saveBtn) {
-        const orig = elements.saveBtn.innerText;
-        elements.saveBtn.innerText = "Saved!";
-        setTimeout(() => { elements.saveBtn.innerText = orig; }, 2000);
-    }
+  if (!elements.saveBtn) return;
+
+  const original = elements.saveBtn.innerText;
+  elements.saveBtn.innerText = "Saved";
+  window.setTimeout(() => {
+    elements.saveBtn.innerText = original;
+  }, 1500);
+}
+
+function statMarkup(label, value) {
+  return `
+    <div class="plan-item">
+      <strong>${value}</strong>
+      <span>${label}</span>
+    </div>
+  `;
 }

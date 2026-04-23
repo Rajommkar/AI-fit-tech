@@ -31,13 +31,13 @@ export function generateCoachAdvice(profile, sessions, exerciseStats) {
 
   return {
     positive: strongExercises.length > 0
-      ? `Great performance in ${strongExercises.slice(0, 3).join(", ")}. Your movement looked confident and repeatable.`
+      ? `Nice work on ${strongExercises.slice(0, 3).join(", ")}. Your reps looked controlled and repeatable.`
       : streak > 1
-        ? `You are building momentum with a ${streak}-session streak. ${habitReward}`
-        : "Good consistency overall.",
+        ? `You are building real momentum with a ${streak}-session streak. ${habitReward}`
+        : "You showed up and got useful work in today.",
     problem: weakExercises.length > 0
-      ? `You need to improve ${weakExercises.slice(0, 3).join(", ")}. Slow down a little and stay more controlled through each rep.`
-      : "No major issues detected.",
+      ? `Your ${weakExercises.slice(0, 3).join(", ")} need more depth and control. Slow the lowering phase and own each position.`
+      : "No major red flags yet. Keep building clean reps so we can coach the smaller details.",
     action: goalActions[profile?.goal || "maintenance"] || "Focus on controlled movement and proper form.",
     focus: weakExercises.slice(0, 3),
     nextWorkout: nextWorkoutBatch,
