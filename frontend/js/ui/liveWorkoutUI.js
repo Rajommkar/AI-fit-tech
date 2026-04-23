@@ -7,10 +7,12 @@ const elements = {
   activeEx: null,
   movementState: null,
   trackingStatus: null,
+  trackingConfidence: null,
   guidanceText: null,
   guidanceBanner: null,
   progressPercent: null,
   progressFill: null,
+  liveHintOverlay: null,
 };
 
 export function initLiveWorkoutUI() {
@@ -22,10 +24,12 @@ export function initLiveWorkoutUI() {
   elements.activeEx = document.getElementById("exerciseName");
   elements.movementState = document.getElementById("movementState");
   elements.trackingStatus = document.getElementById("trackingStatus");
+  elements.trackingConfidence = document.getElementById("trackingConfidence");
   elements.guidanceText = document.getElementById("guidanceText");
   elements.guidanceBanner = document.getElementById("cameraGuidanceBanner");
   elements.progressPercent = document.getElementById("progressPercent");
   elements.progressFill = document.getElementById("progressFill");
+  elements.liveHintOverlay = document.getElementById("liveHintOverlay");
 }
 
 export function updateRepDisplay(count) {
@@ -70,6 +74,11 @@ export function updateStatus(status) {
 
   if (elements.trackingStatus) {
     elements.trackingStatus.innerText = status.trackingStatus || "Waiting";
+    elements.trackingStatus.classList.toggle("pulse-status", Boolean(status.trackingActive));
+  }
+
+  if (elements.trackingConfidence) {
+    elements.trackingConfidence.innerText = status.confidenceLabel || "Calibrating";
   }
 
   if (elements.guidanceText) {
@@ -89,6 +98,20 @@ export function updateStatus(status) {
   }
 }
 
+export function updateLiveHint(text, position) {
+  if (!elements.liveHintOverlay) return;
+
+  if (!text || !position) {
+    elements.liveHintOverlay.classList.add("hidden");
+    return;
+  }
+
+  elements.liveHintOverlay.classList.remove("hidden");
+  elements.liveHintOverlay.innerText = text;
+  elements.liveHintOverlay.style.left = `${Math.max(8, Math.min(92, position.x * 100))}%`;
+  elements.liveHintOverlay.style.top = `${Math.max(10, Math.min(88, position.y * 100))}%`;
+}
+
 export function resetLiveUI() {
   updateRepDisplay(0);
   updateFeedback("Ready when you are. Get into position.", "neutral");
@@ -96,7 +119,10 @@ export function resetLiveUI() {
   updateStatus({
     movementState: "Hold",
     trackingStatus: "Waiting",
+    confidenceLabel: "Calibrating",
+    trackingActive: false,
     guidance: "Step into frame to begin tracking.",
     progressPercent: 0,
   });
+  updateLiveHint(null, null);
 }

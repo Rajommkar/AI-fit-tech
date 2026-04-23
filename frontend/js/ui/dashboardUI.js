@@ -1,5 +1,6 @@
 const elements = {
   score: null,
+  scoreRing: null,
   scoreSummary: null,
   reps: null,
   repsHelp: null,
@@ -13,6 +14,7 @@ const elements = {
 
 export function initDashboardUI() {
   elements.score = document.getElementById("scoreVal");
+  elements.scoreRing = document.getElementById("scoreRing");
   elements.scoreSummary = document.getElementById("scoreSummary");
   elements.reps = document.getElementById("totalRepsVal");
   elements.repsHelp = document.getElementById("totalRepsHelp");
@@ -28,6 +30,11 @@ export function renderDashboard(summary, stats) {
   const hasWorkoutData = summary.totalReps > 0;
 
   if (elements.score) elements.score.innerText = hasWorkoutData ? summary.score : "-";
+  if (elements.scoreRing) {
+    const scoreValue = hasWorkoutData ? Math.max(0, Math.min(100, summary.score)) : 0;
+    const ringColor = scoreValue >= 80 ? "#49e2b1" : scoreValue >= 60 ? "#f5b84b" : "#ff6b6b";
+    elements.scoreRing.style.background = `conic-gradient(${ringColor} ${scoreValue * 3.6}deg, rgba(255, 255, 255, 0.08) 0deg)`;
+  }
   if (elements.scoreSummary) {
     elements.scoreSummary.innerText = hasWorkoutData
       ? `${summary.durationText} of work. ${summary.motivation}`

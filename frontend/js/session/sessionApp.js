@@ -60,6 +60,7 @@ const repSession = {
 let video;
 let canvasElement;
 let canvasCtx;
+let audioContext = null;
 
 function renderView(view) {
   document.querySelectorAll("[data-view]").forEach((section) => {
@@ -71,6 +72,7 @@ function renderView(view) {
 function navigateTo(view) {
   appState.previousView = appState.currentView;
   renderView(view);
+  document.body.classList.toggle("flow-mode", view === AppView.LIVE);
 }
 
 function resetSessionState() {
@@ -149,6 +151,8 @@ async function enableWebcam() {
     liveUI.updateStatus({
       movementState: "Hold",
       trackingStatus: "Camera blocked",
+      confidenceLabel: "Off",
+      trackingActive: false,
       guidance: "Allow camera access, then start again.",
       progressPercent: 0,
     });
@@ -182,6 +186,7 @@ function assessTracking(landmarks) {
   if (!landmarks?.length) {
     return {
       trackingStatus: "Tracking lost",
+      confidenceLabel: "Weak",
       guidance: "Step into frame so your whole body is visible.",
       stateTone: "warning",
       active: false,
@@ -198,6 +203,7 @@ function assessTracking(landmarks) {
   if (clippedTop || clippedBottom || height > 0.92) {
     return {
       trackingStatus: "Tracking warning",
+      confidenceLabel: "Weak",
       guidance: "Move back. Full body not visible.",
       stateTone: "warning",
       active: true,
@@ -207,6 +213,7 @@ function assessTracking(landmarks) {
   if (height < 0.35 || width < 0.18) {
     return {
       trackingStatus: "Tracking warning",
+      confidenceLabel: "Medium",
       guidance: "Move a little closer so I can track your joints.",
       stateTone: "warning",
       active: true,
@@ -215,6 +222,7 @@ function assessTracking(landmarks) {
 
   return {
     trackingStatus: "Tracking active",
+    confidenceLabel: "Strong",
     guidance: "Locked in. Keep moving.",
     stateTone: "good",
     active: true,
@@ -242,6 +250,41 @@ function humanizeFeedback(rawFeedback, feedbackType, movementState, tracking) {
   if (movementState === "Going down") return "Go lower";
   if (movementState === "Going up") return "Push up";
   return "Nice control";
+}
+
+function getHintAnchor(landmarks) {
+  const shoulder = landmarks[11] || landmarks[12];
+  const hip = landmarks[23] || landmarks[24];
+  if (!shoulder || !hip) return { x: 0.5, y: 0.35 };
+
+  return {
+    x: (shoulder.x + hip.x) / 2,
+    y: Math.max(0.18, shoulder.y - 0.08),
+  };
+}
+
+function playTone(frequency, durationMs, volume = 0.025) {
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) return;
+  if (!audioContext) audioContext = new AudioCtx();
+  if (audioContext.state === "suspended") {
+    audioContext.resume().catch(() => {});
+  }
+
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  oscillator.frequency.value = frequency;
+  oscillator.type = "sine";
+  gainNode.gain.value = volume;
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime + durationMs / 1000);
+}
+
+function playRepFeedback(previousCount, currentCount) {
+  if (currentCount <= previousCount) return;
+  playTone(620, 0.09 * 1000, 0.022);
 }
 
 function deriveMovementState(exercise, debugSnapshot, tracking) {
@@ -288,18 +331,23 @@ function processMotionFromLandmarks(landmarks) {
       movementState: "Tracking",
       progressPercent: 0,
       trackingStatus: tracking.trackingStatus,
+      confidenceLabel: tracking.confidenceLabel,
+      trackingActive: tracking.active,
       guidance: tracking.guidance,
     });
     liveUI.updateFeedback("Sequence tracking is on the way. Start with a rep-based movement for now.", "warning");
+    liveUI.updateLiveHint("Track the full motion", getHintAnchor(landmarks));
     return;
   }
 
+  const previousCount = repSession.count;
   const result = stepRepExercise(currentExercise, getJoint, repSession);
   const debugSnapshot = getRepDebugSnapshot(currentExercise, getJoint, repSession);
   const movement = deriveMovementState(currentExercise, debugSnapshot, tracking);
   const feedbackType = mapFeedbackType(result.color);
   const feedback = humanizeFeedback(result.feedback, feedbackType, movement.movementState, tracking);
 
+  playRepFeedback(previousCount, result.reps);
   liveUI.updateRepDisplay(result.reps);
   liveUI.updateFeedback(feedback, tracking.stateTone === "warning" && feedbackType !== "bad" ? "warning" : feedbackType);
   liveUI.updateMetrics(result.speed, result.rating);
@@ -307,8 +355,11 @@ function processMotionFromLandmarks(landmarks) {
     movementState: movement.movementState,
     progressPercent: movement.progressPercent,
     trackingStatus: tracking.trackingStatus,
+    confidenceLabel: tracking.confidenceLabel,
+    trackingActive: tracking.active,
     guidance: tracking.guidance,
   });
+  liveUI.updateLiveHint(feedback, getHintAnchor(landmarks));
 }
 
 function handleTrackingLost() {
@@ -318,9 +369,12 @@ function handleTrackingLost() {
     movementState: "Hold",
     progressPercent: 0,
     trackingStatus: "Tracking lost",
+    confidenceLabel: "Weak",
+    trackingActive: false,
     guidance: "Step back so your full body is visible.",
   });
   liveUI.updateMetrics("-", "-");
+  liveUI.updateLiveHint(null, null);
 }
 
 async function runWebcamPredictionLoop() {
@@ -438,6 +492,7 @@ function endWorkoutSession() {
   currentCoach = generateCoachAdvice(savedProfile, sessions, exerciseStats);
   coachUI.renderCoach(currentCoach);
   planUI.renderPlan(currentCoach.weeklyPlan);
+  playTone(720, 180, 0.03);
 
   navigateTo(AppView.DASHBOARD);
 }
@@ -518,6 +573,7 @@ export async function startSessionApp() {
   document.getElementById("exit_live_btn")?.addEventListener("click", () => navigateTo(AppView.SETUP));
 
   document.getElementById("close_dashboard_btn")?.addEventListener("click", () => navigateTo(AppView.LANDING));
+  document.getElementById("dashboardStartBtn")?.addEventListener("click", () => startWorkoutFlow(currentExercise?.id || "pushup"));
   document.getElementById("openCoachBtn")?.addEventListener("click", () => navigateTo(AppView.COACH));
   document.getElementById("openPlanBtn")?.addEventListener("click", () => navigateTo(AppView.PLAN));
   document.getElementById("backToDashboardBtn")?.addEventListener("click", () => navigateTo(AppView.DASHBOARD));
@@ -535,8 +591,30 @@ export async function startSessionApp() {
 
   poseLandmarker = await createPoseLandmarker();
   renderView(AppView.LANDING);
+  initLandingParallax();
 
   window.openProfileDashboard = openProfileDashboard;
+}
+
+function initLandingParallax() {
+  const panel = document.getElementById("landingParallax");
+  if (!panel) return;
+
+  panel.addEventListener("pointermove", (event) => {
+    const rect = panel.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width - 0.5;
+    const y = (event.clientY - rect.top) / rect.height - 0.5;
+    panel.querySelectorAll(".hero-panel__card").forEach((card, index) => {
+      const depth = (index + 1) * 8;
+      card.style.transform = `rotateX(${(-y * depth).toFixed(2)}deg) rotateY(${(x * depth).toFixed(2)}deg) translateY(${-index * 2}px)`;
+    });
+  });
+
+  panel.addEventListener("pointerleave", () => {
+    panel.querySelectorAll(".hero-panel__card").forEach((card) => {
+      card.style.transform = "";
+    });
+  });
 }
 
 function calculateStreak(sessions) {

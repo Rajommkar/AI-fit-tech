@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" fill="none">
+  <defs>
+    <linearGradient id="fit-tech-glow" x1="16" y1="14" x2="78" y2="82" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7BF0D0"/>
+      <stop offset="1" stop-color="#38C1FF"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="80" height="80" rx="26" fill="#081423"/>
+  <rect x="11" y="11" width="74" height="74" rx="23" stroke="url(#fit-tech-glow)" stroke-opacity=".45" stroke-width="2"/>
+  <path d="M29 31h38" stroke="url(#fit-tech-glow)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M37 31v34" stroke="url(#fit-tech-glow)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M37 48h24" stroke="url(#fit-tech-glow)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M59 31v16" stroke="url(#fit-tech-glow)" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="67" cy="61" r="8" fill="#081423" stroke="url(#fit-tech-glow)" stroke-width="4"/>
+  <path d="M24 66c8-5 15-7 23-7 10 0 18 4 25 10" stroke="url(#fit-tech-glow)" stroke-width="4" stroke-linecap="round" opacity=".85"/>
+</svg>

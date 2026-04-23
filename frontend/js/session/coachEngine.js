@@ -28,17 +28,22 @@ export function generateCoachAdvice(profile, sessions, exerciseStats) {
   const focusArea = weakExercises.length > 0 ? weakExercises[0] : "General Form";
   const weeklyPlan = generateWeeklyPlan(focusArea, sessions, profile?.goal);
   const nextWorkoutBatch = generateWorkoutPlan(profile, exerciseStats);
+  const avgFormAcrossSession = sortedByForm.length
+    ? Math.round(sortedByForm.reduce((sum, [, stat]) => sum + stat.avgForm, 0) / sortedByForm.length)
+    : 0;
+  const confidence = avgFormAcrossSession >= 82 ? "High" : avgFormAcrossSession >= 65 ? "Medium" : "Building";
 
   return {
     positive: strongExercises.length > 0
-      ? `Nice work on ${strongExercises.slice(0, 3).join(", ")}. Your reps looked controlled and repeatable.`
+      ? `Nice work on ${strongExercises.slice(0, 3).join(", ")}. Solid progress with controlled, repeatable reps.`
       : streak > 1
         ? `You are building real momentum with a ${streak}-session streak. ${habitReward}`
-        : "You showed up and got useful work in today.",
+        : "You showed up and got useful work in today. That's a strong base to build from.",
     problem: weakExercises.length > 0
-      ? `Your ${weakExercises.slice(0, 3).join(", ")} need more depth and control. Slow the lowering phase and own each position.`
+      ? `Your ${weakExercises.slice(0, 3).join(", ")} need more depth and control. Let's refine that next.`
       : "No major red flags yet. Keep building clean reps so we can coach the smaller details.",
-    action: goalActions[profile?.goal || "maintenance"] || "Focus on controlled movement and proper form.",
+    action: `You're doing well - now let's refine your depth. ${goalActions[profile?.goal || "maintenance"] || "Focus on controlled movement and proper form."}`,
+    confidence,
     focus: weakExercises.slice(0, 3),
     nextWorkout: nextWorkoutBatch,
     weeklyPlan: weeklyPlan.days

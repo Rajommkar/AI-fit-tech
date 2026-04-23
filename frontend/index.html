@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Fit-Tech | Elite Coach</title>
+    <link rel="icon" type="image/svg+xml" href="/logo-mark.svg">
     <link rel="stylesheet" href="./style.css">
 </head>
 <body>
@@ -12,18 +13,25 @@
             <section id="landing_screen" class="app-section" data-view="landing">
                 <div class="screen-shell screen-shell--landing">
                     <div class="hero-copy">
+                        <div class="brand-lockup">
+                            <img src="/logo-mark.svg" alt="AI Fit-Tech logo" class="brand-lockup__logo">
+                            <div>
+                                <p class="brand-lockup__name">AI Fit-Tech</p>
+                                <p class="brand-lockup__tag">Real-time form intelligence</p>
+                            </div>
+                        </div>
                         <p class="eyebrow">AI Fit-Tech</p>
                         <h1>Train with feedback that reacts as fast as you move.</h1>
                         <p class="hero-text">
                             Start fast, get live form guidance, and finish with clear insights you can actually use.
                         </p>
                         <div class="hero-actions">
-                            <button id="start_workout_cta" class="btn btn-primary">Quick Start Pushups</button>
+                            <button id="start_workout_cta" class="btn btn-primary">Start Training <span class="btn-badge">recommended</span></button>
                             <button id="open_setup_cta" class="btn btn-outline">Choose Workout</button>
                         </div>
                     </div>
 
-                    <div class="hero-panel">
+                    <div class="hero-panel" id="landingParallax">
                         <div class="hero-panel__card">
                             <span class="hero-panel__label">Flow</span>
                             <strong>Start -> Train -> Analyze -> Improve</strong>
@@ -42,6 +50,10 @@
                 <div class="screen-shell screen-shell--setup">
                     <div class="screen-header">
                         <div>
+                            <div class="section-brand">
+                                <img src="/logo-mark.svg" alt="" class="section-brand__logo">
+                                <span>AI Fit-Tech</span>
+                            </div>
                             <p class="eyebrow">Workout Setup</p>
                             <h2>Pick one focus and start immediately.</h2>
                         </div>
@@ -76,6 +88,7 @@
                     <div class="camera-section">
                         <video id="videoFeed" autoplay playsinline></video>
                         <canvas id="poseCanvas"></canvas>
+                        <div id="liveHintOverlay" class="live-hint-overlay hidden"></div>
                         <div class="camera-guidance-banner" id="cameraGuidanceBanner">Step into frame to begin tracking.</div>
                     </div>
 
@@ -106,6 +119,10 @@
                             <div class="status-card">
                                 <span class="status-card__label">Tracking</span>
                                 <strong id="trackingStatus">Waiting</strong>
+                            </div>
+                            <div class="status-card">
+                                <span class="status-card__label">Confidence</span>
+                                <strong id="trackingConfidence">Calibrating</strong>
                             </div>
                         </div>
 
@@ -144,6 +161,10 @@
                 <div class="screen-shell">
                     <div class="screen-header">
                         <div>
+                            <div class="section-brand">
+                                <img src="/logo-mark.svg" alt="" class="section-brand__logo">
+                                <span>AI Fit-Tech</span>
+                            </div>
                             <p class="eyebrow">Dashboard</p>
                             <h2>See what improved and what needs your attention next.</h2>
                         </div>
@@ -154,8 +175,13 @@
                         <div class="dashboard-hero">
                             <div class="dashboard-hero__score card card--hero">
                                 <span class="hero-stat-label">Session Score</span>
-                                <p id="scoreVal" class="hero-stat-value">0</p>
+                                <div class="score-ring" id="scoreRing">
+                                    <div class="score-ring__inner">
+                                        <p id="scoreVal" class="hero-stat-value">0</p>
+                                    </div>
+                                </div>
                                 <p id="scoreSummary" class="hero-summary">Start your first workout to unlock your score.</p>
+                                <button id="dashboardStartBtn" class="btn btn-primary dashboard-inline-cta">Start Workout</button>
                             </div>
 
                             <div class="hero-metrics">
@@ -208,6 +234,10 @@
                 <div class="screen-shell">
                     <div class="screen-header">
                         <div>
+                            <div class="section-brand">
+                                <img src="/logo-mark.svg" alt="" class="section-brand__logo">
+                                <span>AI Fit-Tech</span>
+                            </div>
                             <p class="eyebrow">AI Coach</p>
                             <h2>Human guidance, not workout logs.</h2>
                         </div>
@@ -215,6 +245,9 @@
                     </div>
 
                     <div id="coach-screen" class="coach-container">
+                        <div class="coach-meta-row">
+                            <div class="pill">Coach Confidence: <span id="coachConfidence">High</span></div>
+                        </div>
                         <div class="coach-card positive">
                             <h3>What Went Well</h3>
                             <p id="coachPositive">-</p>
@@ -242,6 +275,10 @@
                 <div class="screen-shell">
                     <div class="screen-header">
                         <div>
+                            <div class="section-brand">
+                                <img src="/logo-mark.svg" alt="" class="section-brand__logo">
+                                <span>AI Fit-Tech</span>
+                            </div>
                             <p class="eyebrow">Plan</p>
                             <h2>Follow the next 7 days without overthinking it.</h2>
                         </div>
@@ -260,6 +297,10 @@
                             </div>
                         </div>
 
+                        <div id="todayFocusCard" class="plan-day plan-day--focus">
+                            <h3>Today's Focus</h3>
+                            <p id="todayFocusText">Finish one session and we will highlight the right move for today.</p>
+                        </div>
                         <div id="planContent" class="plan-content"></div>
                     </div>
                 </div>
@@ -269,6 +310,10 @@
                 <div class="screen-shell">
                     <div class="screen-header">
                         <div>
+                            <div class="section-brand">
+                                <img src="/logo-mark.svg" alt="" class="section-brand__logo">
+                                <span>AI Fit-Tech</span>
+                            </div>
                             <p class="eyebrow">Profile</p>
                             <h2>Track your consistency and keep your goals current.</h2>
                         </div>

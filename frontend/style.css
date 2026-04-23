@@ -38,6 +38,14 @@ body {
   color: var(--color-text);
   font-family: var(--font-main);
   line-height: 1.5;
+  background-size: 140% 140%;
+  animation: backgroundShift 14s ease infinite;
+}
+
+@keyframes backgroundShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .hidden {
@@ -85,6 +93,53 @@ body {
   align-items: flex-start;
   gap: var(--space-4);
   margin-bottom: var(--space-5);
+}
+
+.brand-lockup,
+.section-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.brand-lockup {
+  margin-bottom: var(--space-4);
+}
+
+.brand-lockup__logo,
+.section-brand__logo {
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 20px rgba(56, 193, 255, 0.15));
+}
+
+.brand-lockup__logo {
+  width: 58px;
+  height: 58px;
+}
+
+.section-brand {
+  margin-bottom: var(--space-2);
+  color: var(--color-text);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.section-brand__logo {
+  width: 32px;
+  height: 32px;
+}
+
+.brand-lockup__name {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.brand-lockup__tag {
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
 }
 
 .eyebrow {
@@ -155,6 +210,19 @@ body {
   box-shadow: 0 18px 30px rgba(73, 226, 177, 0.18);
 }
 
+.btn-primary:hover {
+  box-shadow: 0 22px 38px rgba(73, 226, 177, 0.28);
+}
+
+.btn-badge {
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(4, 16, 23, 0.16);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
 .btn-outline {
   background: rgba(255, 255, 255, 0.02);
   border-color: var(--color-border);
@@ -169,6 +237,7 @@ body {
 .hero-panel {
   display: grid;
   gap: var(--space-4);
+  perspective: 1000px;
 }
 
 .hero-panel__card,
@@ -218,6 +287,20 @@ body {
   display: block;
   font-size: 1.5rem;
   margin-bottom: var(--space-2);
+}
+
+.hero-panel__card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  animation: heroFloat 5s ease-in-out infinite;
+}
+
+.hero-panel__card:nth-child(2) {
+  animation-delay: 0.6s;
+}
+
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
 }
 
 .setup-grid {
@@ -323,6 +406,26 @@ body {
   backdrop-filter: blur(10px);
 }
 
+.live-hint-overlay {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(7, 17, 31, 0.88);
+  border: 1px solid rgba(97, 199, 255, 0.28);
+  color: var(--color-text);
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+  animation: hintPulse 1.25s ease infinite;
+  z-index: 5;
+}
+
+@keyframes hintPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.04); }
+}
+
 .coach-panel {
   display: grid;
   gap: var(--space-4);
@@ -401,7 +504,7 @@ body {
 
 .live-status-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
 }
 
@@ -435,7 +538,7 @@ body {
   height: 100%;
   background: var(--gradient-accent);
   border-radius: inherit;
-  transition: width 0.16s ease;
+  transition: width 0.12s linear;
 }
 
 .metrics {
@@ -479,6 +582,31 @@ body {
 .card--hero {
   display: grid;
   align-content: start;
+}
+
+.score-ring {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  margin: var(--space-3) 0;
+  padding: 14px;
+  background: conic-gradient(var(--color-accent) 0deg, rgba(255, 255, 255, 0.08) 0deg);
+  transition: background 0.3s ease;
+}
+
+.score-ring__inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(7, 17, 31, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dashboard-inline-cta {
+  margin-top: var(--space-3);
+  align-self: start;
 }
 
 .hero-stat-value {
@@ -529,6 +657,29 @@ body {
   font-size: 0.92rem;
 }
 
+.card,
+.plan-day,
+.coach-card,
+.focus-section,
+.profile-card,
+.exercise-card,
+.feedback-card,
+.progress-card,
+.guidance-card,
+.status-card {
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.card:hover,
+.plan-day:hover,
+.coach-card:hover,
+.focus-section:hover,
+.profile-card:hover,
+.exercise-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 22px 40px rgba(0, 0, 0, 0.24);
+}
+
 .section-title-row {
   display: flex;
   justify-content: space-between;
@@ -557,6 +708,16 @@ body {
 .coach-container {
   display: grid;
   gap: var(--space-4);
+}
+
+.coach-meta-row {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.coach-highlight {
+  color: var(--color-accent);
+  font-weight: 800;
 }
 
 .coach-card.positive {
@@ -609,6 +770,11 @@ body {
   margin-bottom: var(--space-3);
 }
 
+.plan-day--focus {
+  border-color: rgba(73, 226, 177, 0.32);
+  background: linear-gradient(180deg, rgba(73, 226, 177, 0.1), rgba(12, 22, 38, 0.88));
+}
+
 .pill {
   display: inline-flex;
   align-items: center;
@@ -619,6 +785,17 @@ body {
   color: var(--color-accent);
   font-size: 0.82rem;
   font-weight: 700;
+}
+
+.pill.is-complete {
+  color: var(--color-accent);
+  border-color: rgba(73, 226, 177, 0.32);
+}
+
+.pill.is-today {
+  color: var(--color-warning);
+  border-color: rgba(245, 184, 75, 0.35);
+  background: rgba(245, 184, 75, 0.12);
 }
 
 .plan-item {
@@ -640,6 +817,18 @@ body {
 
 .plan-item span {
   color: var(--color-text-muted);
+}
+
+.plan-day__toggle {
+  margin-top: var(--space-3);
+}
+
+.plan-day__details.hidden {
+  display: none;
+}
+
+.plan-day__status {
+  margin-left: auto;
 }
 
 .profile-grid {
@@ -681,6 +870,28 @@ body {
 
 .rep-pop {
   animation: repPulse 0.28s ease;
+}
+
+.pulse-status {
+  position: relative;
+}
+
+.pulse-status::after {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 0.55rem;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 0 currentColor;
+  animation: signalPulse 1.3s infinite;
+}
+
+@keyframes signalPulse {
+  0% { box-shadow: 0 0 0 0 rgba(97, 199, 255, 0.45); }
+  70% { box-shadow: 0 0 0 10px rgba(97, 199, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(97, 199, 255, 0); }
 }
 
 @keyframes repPulse {
@@ -743,5 +954,10 @@ body {
 
   .card p {
     font-size: 1.9rem;
+  }
+
+  .score-ring {
+    width: 180px;
+    height: 180px;
   }
 }
