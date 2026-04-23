@@ -1,4 +1,4 @@
-export function stepSequenceExercise(exercise, landmarks, session, hud) {
+export function stepSequenceExercise(exercise, landmarks, session) {
   const headY = landmarks[0].y;
   const stageName = exercise.stages[session.currentStageIndex];
   let stageReached = false;
@@ -10,12 +10,13 @@ export function stepSequenceExercise(exercise, landmarks, session, hud) {
   }
   if (stageName === "JUMP" && headY < 0.2) stageReached = true;
 
-  if (!stageReached) return;
+  if (!stageReached) return { count: session.count };
 
   if (stageName === exercise.count_on) {
     session.count += 1;
-    hud.repCountEl.innerText = String(session.count);
   }
   session.currentStageIndex =
     (session.currentStageIndex + 1) % exercise.stages.length;
+
+  return { count: session.count };
 }
