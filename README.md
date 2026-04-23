@@ -1,128 +1,189 @@
-# ⚡ AI Fit-Tech | NeonFit Elite
+# AI Fit-Tech
 
-> **AI-Powered Fitness Coach providing real-time biomechanical analysis, automated session analytics, and adaptive corrective programming.**
+Real-time workout coaching powered by pose detection, form analysis, session scoring, and adaptive training guidance.
 
----
+AI Fit-Tech turns a webcam into a lightweight training assistant. It tracks movement, counts reps, detects basic form issues, gives live workout feedback, and follows up with a dashboard, AI coach insights, and a day-wise workout plan.
 
-## 🧩 1. Project Overview
-NeonFit Elite is an end-to-end AI Fitness Coach that leverages computer vision (pose detection) and geometric state machines to solve the lack of personalized, real-time guidance in solo workouts. It doesn't just count reps; it analyzes the kinetic chain to ensure mastery of form and automated athlete progression.
+## Highlights
 
-## 🧩 2. Problem Statement
-Many fitness enthusiasts fail to see results or suffer injuries due to:
-- **Incorrect Exercise Form**: Small misalignments (e.g., knee cave in squats) go unnoticed.
-- **Lack of Real-Time Feedback**: No one is there to say "go deeper" or "slow down" during a set.
-- **No Personalized Guidance**: Users don't know what to do next based on their specific technical weaknesses.
+- Live workout screen with rep counting, movement state, progress, tracking status, and on-video hints
+- Form-aware coaching for rep-based exercises using joint-angle thresholds and state transitions
+- Session dashboard with score, reps, streak, trend, and per-exercise breakdown
+- AI coach summary with strengths, problems, next action, and focus exercises
+- Structured 7-day plan with day-wise sets and reps
+- Profile and session history stored in browser local storage
 
-## 🧩 3. Solution Overview
-NeonFit Elite transforms a standard webcam into a high-fidelity biomechanical lab:
-- **Real-time Tracking**: 33-point anatomical landmark detection via MediaPipe.
-- **Form Correction**: Instant geometric analysis of joint angles and spine alignment.
-- **Deep Analytics**: Post-session breakdowns of speed, score, and technical precision.
-- **Adaptive AI Coaching**: A decision-making engine that generates personalized 7-day protocols and identifies CNS fatigue.
+## Product Flow
 
-## 🧩 4. Core Features
+`Landing -> Workout Setup -> Live Workout -> Dashboard -> AI Coach -> Plan`
 
-### 🎯 Tracking System
-- **Biomechanical Pose Detection**: Sub-millisecond tracking of 33 key anatomical landmarks.
-- **Hysteresis-Based Rep Counting**: Uses stable frame thresholds and "extended → flexed → extended" state cycles to prevent double-counting or skipped reps.
+## Tech Stack
 
-### 🧍 Form Correction
-- **Posture Detection**: Real-time monitoring of spine curvature (spine angle logic).
-- **Incomplete Rep Detection**: Geometric triggers that warn when Range of Motion (ROM) falls below set thresholds (e.g., not squatting deep enough).
+- Frontend: HTML, CSS, JavaScript, Vite
+- Vision: MediaPipe Tasks Vision (`@mediapipe/tasks-vision`)
+- Backend: FastAPI
+- Data: JSON exercise definitions + browser local storage
 
-### 📊 Analytics
-- **Per-Exercise Metrics**: Granular tracking of Rep Speed (ms/rep), Form Score (0-100), and technical rating.
-- **Trend Analysis**: Longitudinal session scoring and performance delta calculation (+/- performance shifts).
+## Repository Structure
 
-### 🤖 AI Coach
-- **Weak/Strong Identification**: Automated detection of "Critical Focus" areas based on historical form metrics.
-- **Fatigue Detection**: Detects CNS fatigue by correlating performance drops with increased movement velocity (rushing).
-
-### 📅 Workout Planner
-- **Weak-Area Prioritization**: Generates 7-day corrective protocols targeting the athlete's most unstable kinetic chains.
-- **Goal-Based Prescriptions**: Auto-adjusts sets/reps based on user goals (Muscle Gain: 10 reps | Endurance: 15 reps).
-
-### 🔥 Habit System
-- **Consistency Quotient**: A 0-100 score measuring regularity against weekly training targets.
-- **Achievement Badges**: Tiered rewards (7-Day Warrior, Consistency King) to drive long-term retention.
-
-## 🧩 5. System Architecture
-The platform is built as a modular feedback loop ensuring data flows seamlessly from the camera to the training plan:
-
-```mermaid
-graph LR
-    Camera[Camera Feed] --> Pose[MediaPipe Landmarks]
-    Pose --> Engine[Rep State Machine]
-    Engine --> Form[Form Analysis]
-    Form --> Scoring[Biomechanical Scoring]
-    Scoring --> Analytics[Session History]
-    Analytics --> Coach[AI Coach Engine]
-    Coach --> Planner[7-Day Planner]
-    Planner --> UI[Adaptive Dashboard]
-```
-
-## 🧩 6. Tech Stack
-- **Languages**: JavaScript (ES6+ Modular Architecture), HTML5, CSS3 (HSL Custom Design System).
-- **Computer Vision**: Google MediaPipe (@mediapipe/tasks-vision).
-- **Persistence**: Browser LocalStorage with JSON-based history indexing.
-- **Tooling**: Vite for fast HMR and optimized build cycles.
-
-## 🧩 7. Project Structure
 ```text
+backend/
+  common/exercises.json      Exercise definitions and thresholds
+  main.py                    FastAPI app and exercise API
+
 frontend/
-├── js/session/
-│   ├── repExercise.js     # Core Rep State Machine (Hysteresis Logic)
-│   ├── coachEngine.js     # Decision-making & Advice Synthesizer
-│   ├── workoutPlanner.js  # Corrective Protocol Generator
-│   ├── habitSystem.js     # Persistence & Consistency Scoring
-│   └── sessionApp.js      # Main Controller & UI Sync
-└── index.html             # High-Fidelity Glassmorphism Dashboard
+  index.html                 App shell and screen structure
+  style.css                  Visual system and interaction styling
+  main.js                    Frontend entry point
+  public/logo-mark.svg       Brand logo
+  js/session/                Tracking, scoring, coaching, planning logic
+  js/ui/                     Screen-specific UI modules
 ```
 
-## 🧩 8. Key Engine Explanations
+## Core Features
 
-### 🦾 Rep Engine (Hysteresis)
-Unlike simple "line crossing" logic, our engine uses **Stability Frames**. It requires the joint to stay within a threshold (Flexed/Extended) for $N$ consecutive frames before transitioning states. This filters out noise and ensures full Range of Motion (ROM).
+### Live Coaching
 
-### 🤖 Coach Engine (Adaptive)
-The coach uses **Performance Deltas**. By comparing your current session score and average speed against your previous results, it can distinguish between "Lazy Form" and "Fatigue," providing corrective advice rather than generic motivation.
+- Camera-based pose tracking
+- Rep counting with stable state transitions
+- Real-time feedback like `Go lower`, `Push up`, and `Nice control`
+- Tracking confidence and camera guidance
+- Rep progress and movement state feedback
 
-### 📅 Planner (Corrective)
-The planner uses **Normalization Regex** to map exercise weaknesses to a corrective protocol dictionary. If your "Pushup" form is poor, it prescribes specific stability work (e.g., Incline Pushups, Planks) for the next 7 days.
+### Post-Workout Analysis
 
-## 🧩 9. Unique Points
-- **Not Just a Counter**: Most apps count reps; NeonFit Elite coaches the *quality* of those reps.
-- **Full Feedback Loop**: Data doesn't just sit in a graph; it directly influences your next workout plan.
-- **Scalable Design**: The modular architecture allows adding new biometric definitions without rewriting the core engine.
+- Session score
+- Total reps and streak
+- Best exercise, weak area, and trend
+- Exercise breakdown cards with rep and form summaries
 
-## 🧩 10. How To Run
-1. **Clone & Setup**:
-   ```bash
-   git clone https://github.com/Rajommkar/AI-fit-tech.git
-   cd AI-fit-tech/frontend
-   ```
-2. **Install Dependencies**:
-   ```bash
-   npm install
-   ```
-3. **Run Dev Server**:
-   ```bash
-   npm run dev
-   ```
-4. **Access**: Open `http://localhost:5173` in a Chrome/Edge browser.
+### AI Guidance
 
-## 🧩 11. Screenshots
-*Note: High-fidelity screenshots of the Neon Dashboard, AI Coach Advice, and Profile History.*
-![Dashboard Preview](https://via.placeholder.com/800x450?text=AI+Fit-Tech+Dashboard+Preview)
+- Human-style coach summary
+- Focus areas based on weaker movement quality
+- Goal-aware next action
+- Auto-generated 7-day plan
 
-## 🧩 12. Future Improvements
-- **Generative AI Integration**: Using LLMs to provide conversational, long-form fitness coaching.
-- **Mobile PWA**: Expanding the MediaPipe implementation for low-latency mobile device use.
-- **Voice-Activated Coaching**: Hands-free session control and real-time audio corrections.
+## How It Works
 
-## 🧩 13. Author
-**[Rajommkar]**
-GitHub: [Rajommkar](https://github.com/Rajommkar)
+### 1. Exercise Definitions
 
----
-*Developed with a focus on System Architecture and Biomechanical Precision.*
+Exercises are loaded from [`backend/common/exercises.json`](./backend/common/exercises.json). These definitions include:
+
+- tracked joints
+- rep thresholds
+- scoring ranges
+- form feedback messages
+
+### 2. Rep Engine
+
+For rep-based movements, the app uses angle-based state transitions with stability-frame checks. That helps avoid noisy counting and supports simple form feedback like incomplete depth or poor posture.
+
+### 3. Session Intelligence
+
+Each completed rep contributes to session history. After the workout, the app generates:
+
+- a summary dashboard
+- coach advice
+- a day-wise plan
+
+## Local Setup
+
+### Prerequisites
+
+- Node.js 18+
+- Python 3.10+
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/Rajommkar/AI-fit-tech.git
+cd AI-fit-tech
+```
+
+### 2. Start the Backend
+
+```bash
+cd backend
+python main.py
+```
+
+The API runs on `http://localhost:8000`.
+
+### 3. Start the Frontend
+
+Open a second terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend runs on `http://localhost:5173`.
+
+## Environment Notes
+
+The frontend fetches exercises from:
+
+`http://localhost:8000/exercises`
+
+You can override that by setting `VITE_API_BASE_URL`.
+
+Example:
+
+```bash
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+## Available Scripts
+
+In `frontend/`:
+
+```bash
+npm run dev
+npm run build
+npm run preview
+```
+
+## API
+
+### `GET /`
+
+Returns a simple API status message.
+
+### `GET /exercises`
+
+Returns the exercise definitions used by the frontend tracker and planner.
+
+## Current Focus
+
+This project currently emphasizes:
+
+- rep-based movement tracking
+- feedback-driven UX
+- clean training flow
+- lightweight local-first persistence
+
+## Roadmap
+
+- richer on-video form overlays
+- broader exercise coverage
+- better sequence exercise support
+- stronger session analytics
+- deployment-ready configuration
+- mobile-friendly coaching experience
+
+## Screens
+
+- Landing
+- Workout Setup
+- Live Workout
+- Dashboard
+- AI Coach
+- Plan
+- Profile
+
+## Author
+
+Built by [Rajommkar](https://github.com/Rajommkar).
